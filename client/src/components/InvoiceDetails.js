@@ -362,7 +362,7 @@ function InvoiceDetails() {
           </div>
           <h1 className="text-center font-bold text-2xl">Produkty</h1>
           <div className="my-10 overflow-auto">
-            <table className="text-center w-[1700px] m-auto">
+            <table className="text-center w-[1700px] m-auto border-separate border-spacing-y-2">
               <thead>
                 <tr>
                   <th className="font-extrabold">#</th>
@@ -487,7 +487,9 @@ function InvoiceDetails() {
               Edytuj
             </Button>
             <AlertDialog>
-              <AlertDialogTrigger>Usuń fakturę</AlertDialogTrigger>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Usuń fakturę</Button>
+              </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>

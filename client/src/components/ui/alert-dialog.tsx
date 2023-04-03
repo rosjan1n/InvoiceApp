@@ -1,10 +1,13 @@
+"use client"
+
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
 import { cn } from "../../lib/utils.js"
 
-
 const AlertDialog = AlertDialogPrimitive.Root
+
+const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = ({
   className,
@@ -139,21 +142,6 @@ const AlertDialogCancel = React.forwardRef<
   />
 ))
 AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
-
-const AlertDialogTrigger = React.forwardRef<
-  React.ElementRef<typeof AlertDialogPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "mt-2 inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-red-500 py-2 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-100 dark:focus:ring-slate-400 dark:focus:ring-offset-slate-900 sm:mt-0",
-      className
-    )}
-    {...props}
-  />
-))
-AlertDialogTrigger.displayName = AlertDialogPrimitive.Trigger.displayName
 
 export {
   AlertDialog,

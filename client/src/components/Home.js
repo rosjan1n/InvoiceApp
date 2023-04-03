@@ -59,7 +59,7 @@ function Home() {
 
   return (
     <div className="flex gap-8 flex-col mb-6">
-      <div className="flex justify-between mt-4 w-11/12 m-auto">
+      <div className="flex justify-between mt-4 w-[90%] m-auto">
         <header className="container-header">
           <h2 className="text-2xl font-bold">Podsumowanie</h2>
           <small className="text-sm font-medium leading-none">

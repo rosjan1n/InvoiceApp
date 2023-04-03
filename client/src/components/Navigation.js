@@ -66,7 +66,7 @@ function Navigation() {
                   <Link
                     className={
                       window.location.pathname.match("/projects")
-                        ? "rounded p-3font-medium"
+                        ? "rounded p-3 font-medium"
                         : "rounded p-3 transition-all hover:bg-gray-100 dark:hover:text-slate-900 hover:border hover:border-slate-300 hover:shadow-lg"
                     }
                     to="/projects"

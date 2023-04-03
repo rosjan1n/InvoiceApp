@@ -3,7 +3,6 @@ const Project = require('../../database/models/Project');
 class ProjectController {
   async saveProject(req, res) {
     const data = req.body;
-
     let project;
 
     try {

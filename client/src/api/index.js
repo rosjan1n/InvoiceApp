@@ -4,6 +4,7 @@ const API_URL = 'http://localhost:5001/api';
 
 /* Create data */
 export const createInvoice = (data) => axios.post(`${API_URL}/invoices`, data);
+export const createProject = (data) => axios.post(`${API_URL}/projects`, data);
 
 /* Fetch data */
 export const fetchInvoices = () => axios.get(`${API_URL}/invoices`);

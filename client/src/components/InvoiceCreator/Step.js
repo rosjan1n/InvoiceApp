@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 
@@ -120,7 +121,7 @@ function Step({ currentStep, clients, projects }) {
           <div className="flex">
             <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
               <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
-              Nowy projekt
+              <Link to={"/projects"}>Nowy projekt</Link>
             </span>
             <select
               id="select-project"
@@ -209,7 +210,7 @@ function Step({ currentStep, clients, projects }) {
         </div>
         <h1 className="text-3xl font-bold text-center">Produkty</h1>
         <div className="overflow-x-auto">
-          <table className="w-[1300px] m-auto">
+          <table className="w-[1300px] m-auto border-separate border-spacing-y-2">
             <thead>
               <tr>
                 <th className="font-extrabold">#</th>
@@ -499,7 +500,7 @@ function Step({ currentStep, clients, projects }) {
         </div>
         <h1 className="text-center font-bold text-2xl">Produkty</h1>
         <div className="my-10 overflow-auto">
-          <table className="text-center w-[1000px] m-auto">
+          <table className="text-center w-[1000px] m-auto border-separate border-spacing-y-2">
             <thead>
               <tr>
                 <th className="font-extrabold">#</th>

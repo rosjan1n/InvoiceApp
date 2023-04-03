@@ -85,8 +85,8 @@ function InvoiceCreator() {
 
   return (
     <div className="flex gap-8 xl:gap-20 flex-col mb-8">
-      <div className="flex justify-between w-[90%] m-auto">
-        <div className="w-[100%] pt-3">
+      <div className="flex justify-between w-[90%] mt-4 m-auto">
+        <div className="w-[100%]">
           <h2 className="text-2xl font-bold">
             <FontAwesomeIcon
               className="cursor-pointer"

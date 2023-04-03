@@ -19,6 +19,7 @@ import Home from './components/Home';
 import InvoiceDetails from './components/InvoiceDetails';
 import ProjectDetails from './components/ProjectDetails';
 import InvoiceCreator from './components/InvoiceCreator/InvoiceCreator';
+import ProjectCreator from './components/ProjectCreator/ProjectCreator';
 import { Toaster } from './components/ui/toaster.tsx';
 
 /* Font awesome */
@@ -43,6 +44,7 @@ function App() {
           <Route element={<Navigation /> }>
             <Route path='/' element={<Navigate to='/home' replace />} />
             <Route path='/home' element={<Home />} />
+            <Route path='/projects' element={<ProjectCreator />} />
             <Route path='/invoices' element={<InvoiceCreator />} />
             <Route path='/invoices/:id' element={<InvoiceDetails />} />
             <Route path='/projects/:id' element={<ProjectDetails />} />

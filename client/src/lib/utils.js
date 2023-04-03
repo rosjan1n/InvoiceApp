@@ -53,6 +53,7 @@ export const invoice_form = {
   project: {
     name: "",
     category: "",
+    client_id: ""
   },
   products: [
     {

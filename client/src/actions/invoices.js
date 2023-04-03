@@ -15,7 +15,7 @@ export const getInvoices = () => async (dispatch) => {
 
     dispatch({ type: 'INVOICES_FETCH_ALL', payload: data})
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 }
 
@@ -34,6 +34,6 @@ export const deleteInvoice = (id) => async (dispatch) => {
 
     dispatch({ type: 'INVOICES_DELETE', payload: id});
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 }

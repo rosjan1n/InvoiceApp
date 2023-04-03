@@ -6,6 +6,6 @@ export const getClients = () => async (dispatch) => {
 
     dispatch({ type: 'CLIENTS_FETCH_ALL', payload: data})
   } catch (error) {
-    console.log(error.message);
+    throw error;
   }
 }

@@ -1,4 +1,4 @@
-export default (invoices = [], action) => {
+export const invoices = (invoices = [], action) => {
   switch (action.type) {
     case 'INVOICES_FETCH_ALL':
       return action.payload;
