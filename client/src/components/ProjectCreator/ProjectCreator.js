@@ -9,6 +9,14 @@ import { addProject } from "../../actions/projects";
 import { invoice_form } from "../../lib/utils";
 
 /* Components */
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectSeparator,
+  SelectValue,
+} from "../ui/select.tsx";
 import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 import { useState } from "react";
@@ -20,16 +28,25 @@ function ProjectCreator() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleChange = (e) => {
+  const handleNameChange = (e) => {
     const { name, value } = e.target;
-    const id = e.target.selectedOptions[0].getAttribute("_id");
-    const updatedThings = { ...project, [name]: value };
-    if (id) updatedThings.client_id = id;
     setProject((prevProject) => ({
       ...prevProject,
-      name: updatedThings.name,
-      category: updatedThings.category,
-      client_id: updatedThings.client_id,
+      [name]: value,
+    }));
+  };
+
+  const handleClientChange = (value) => {
+    setProject((prevProject) => ({
+      ...prevProject,
+      client_id: value,
+    }));
+  };
+
+  const handleCategoryChange = (value) => {
+    setProject((prevProject) => ({
+      ...prevProject,
+      category: value,
     }));
   };
 
@@ -51,6 +68,7 @@ function ProjectCreator() {
         });
       });
   };
+
   return (
     <div className="flex gap-8 xl:gap-20 flex-col mb-6">
       <div className="flex justify-between w-[90%] mt-4 m-auto">
@@ -77,27 +95,32 @@ function ProjectCreator() {
             name="name"
             placeholder="Nazwa projektu"
             value={project["name"]}
-            onChange={(e) => handleChange(e)}
+            onChange={(e) => handleNameChange(e)}
             className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           />
         </div>
         <div className="flex flex-col gap-2">
           <label>Kategoria projektu:</label>
-          <select
-            id="category"
-            name="category"
+          <Select
             value={project["category"]}
-            onChange={(e) => handleChange(e)}
-            className="rounded-lg px-2 bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block min-w-0 w-full h-[43px] text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            onValueChange={(value) => handleCategoryChange(value)}
           >
-            <option value={"default"} hidden>
-              Wybierz kategorie projektu...
-            </option>
-            <option value={"Design & Creative"}>Design & Creative</option>
-            <option value={"Performance Marketing"}>
-              Performance Marketing
-            </option>
-          </select>
+            <SelectTrigger className="gap-2 px-2 border w-full h-[43px] focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500">
+              <SelectValue placeholder="Wybierz kategorie projektu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="" disabled>
+                Wybierz kategorie
+              </SelectItem>
+              <SelectSeparator />
+              <SelectItem value="Design & Creative">
+                Design & Creative
+              </SelectItem>
+              <SelectItem value="Performance Marketing">
+                Performance Marketing
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-2">
           <label>Dane klienta:</label>
@@ -106,21 +129,28 @@ function ProjectCreator() {
               <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
               Nowy klient
             </span>
-            <select
-              id="select-client"
-              name="client_id"
-              onChange={(e) => handleChange(e)}
-              className="rounded-none rounded-r-lg px-2 bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full h-[43px] text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <Select
+              value={project["client_id"]}
+              onValueChange={(value) => handleClientChange(value)}
             >
-              <option value={"default"} hidden>
-                Wybierz klienta...
-              </option>
-              {clients.map((client, i) => (
-                <option key={i} value={client.name} _id={client._id}>
-                  {client.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                name="client_id"
+                className="rounded-none rounded-r-lg px-2 border w-full h-[43px] focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500"
+              >
+                <SelectValue placeholder="Wybierz klienta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" disabled>
+                  Wybierz klienta
+                </SelectItem>
+                <SelectSeparator />
+                {clients.map((client, i) => (
+                  <SelectItem key={i} value={client._id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

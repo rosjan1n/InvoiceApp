@@ -20,6 +20,7 @@ import InvoiceDetails from './components/InvoiceDetails';
 import ProjectDetails from './components/ProjectDetails';
 import InvoiceCreator from './components/InvoiceCreator/InvoiceCreator';
 import ProjectCreator from './components/ProjectCreator/ProjectCreator';
+import ClientCreator from './components/ClientCreator/ClientCreator';
 import { Toaster } from './components/ui/toaster.tsx';
 
 /* Font awesome */
@@ -46,9 +47,9 @@ function App() {
             <Route path='/home' element={<Home />} />
             <Route path='/projects' element={<ProjectCreator />} />
             <Route path='/invoices' element={<InvoiceCreator />} />
+            <Route path='/clients' element={<ClientCreator />} />
             <Route path='/invoices/:id' element={<InvoiceDetails />} />
             <Route path='/projects/:id' element={<ProjectDetails />} />
-            <Route path='/clients' element={<Home />} />
           </Route>
         </Routes>
       </BrowserRouter>

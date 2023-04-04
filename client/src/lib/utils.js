@@ -1,8 +1,8 @@
-import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export const calculateBrutto = (product) => {
@@ -16,7 +16,7 @@ export const calculateVat = (product) => {
 export const calculateTotal = (data) => {
   let total = 0;
   data.products.map((product) => {
-    return total += calculateBrutto(product);
+    return (total += calculateBrutto(product));
   });
   data.details.total = total;
   return total;
@@ -53,7 +53,8 @@ export const invoice_form = {
   project: {
     name: "",
     category: "",
-    client_id: ""
+    client_id: "",
+    status: 0,
   },
   products: [
     {
@@ -66,5 +67,5 @@ export const invoice_form = {
       total_price_brutto: 0,
       total_price_netto: 0,
     },
-  ]
-}
+  ],
+};

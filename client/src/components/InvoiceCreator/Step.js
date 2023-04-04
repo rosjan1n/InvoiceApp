@@ -4,6 +4,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 
 /* Components */
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectSeparator,
+  SelectValue,
+} from "../ui/select.tsx";
 import { Button } from "../ui/button.tsx";
 
 /* Utils */
@@ -18,32 +26,28 @@ export const Data = () => {
 function Step({ currentStep, clients, projects }) {
   const [data, setData] = useState(invoice_form);
 
-  const handleClientChange = (e) => {
-    const { name, value } = e.target;
-    const _id = e.target.selectedOptions[0].getAttribute("_id");
-    const client = clients.find((c) => c._id === _id);
-    var updatedClient = { ...data["client"], [name]: value };
-    var updatedDetails = { ...data['details'], client_id: _id };
+  const handleClientChange = (value) => {
+    const client = clients.find((c) => c._id === value);
+    var updatedClient = { ...data["client"], name: client.name };
+    var updatedDetails = { ...data["details"], client_id: value };
     updatedClient = { ...updatedClient, address: client.address };
     updatedClient = { ...updatedClient, private: client.private };
     setData((prevInvoice) => ({
       ...prevInvoice,
       client: updatedClient,
-      details: updatedDetails
+      details: updatedDetails,
     }));
   };
 
-  const handleProjectChange = (e) => {
-    const { name, value } = e.target;
-    const _id = e.target.selectedOptions[0].getAttribute("_id");
-    const project = projects.find((p) => p._id === _id);
-    var updatedDetails = { ...data['details'], project_id: _id };
-    var updatedProject = { ...data["project"], [name]: value };
+  const handleProjectChange = (value) => {
+    const project = projects.find((p) => p._id === value);
+    var updatedDetails = { ...data["details"], project_id: value };
+    var updatedProject = { ...data["project"], name: project.name };
     updatedProject = { ...updatedProject, category: project.category };
     setData((prevInvoice) => ({
       ...prevInvoice,
       project: updatedProject,
-      details: updatedDetails
+      details: updatedDetails,
     }));
   };
 
@@ -66,15 +70,37 @@ function Step({ currentStep, clients, projects }) {
     }));
   };
 
+  const handlePaymentChange = (value) => {
+    setData((prevInvoice) => ({
+      ...prevInvoice,
+      details:  {
+        ...prevInvoice['details'],
+        payment_method: value
+      }
+    }))
+  }
+
   const addProduct = () => {
     setData((prevInvoice) => ({
       ...prevInvoice,
-      products: [...prevInvoice.products, { name: "", description: "", quantity: 1, price: 0, vat: 5, vat_price: 0, total_price_brutto: 0, total_price_netto: 0 }],
+      products: [
+        ...prevInvoice.products,
+        {
+          name: "",
+          description: "",
+          quantity: 1,
+          price: 0,
+          vat: 5,
+          vat_price: 0,
+          total_price_brutto: 0,
+          total_price_netto: 0,
+        },
+      ],
     }));
   };
 
   const removeProduct = (index) => {
-    if(data['products'].length > 1)
+    if (data["products"].length > 1)
       setData((prevInvoice) => ({
         ...prevInvoice,
         products: prevInvoice.products.filter((_, i) => i !== index),
@@ -98,22 +124,29 @@ function Step({ currentStep, clients, projects }) {
               <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
               Nowy klient
             </span>
-            <select
-              id="select-client"
-              name="name"
-              value={data["client"].name}
-              onChange={(e) => handleClientChange(e)}
-              className="rounded-none rounded-r-lg px-2 bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full h-[43px] text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <Select
+              name="select-client"
+              value={data["details"].client_id}
+              onValueChange={(value) => handleClientChange(value)}
             >
-              <option value={"default"} hidden>
-                Wybierz klienta...
-              </option>
-              {clients.map((client, i) => (
-                <option key={i} value={client.name} _id={client._id}>
-                  {client.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                name="client_id"
+                className="select-client rounded-none rounded-r-lg px-2 border w-full h-[43px] focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500"
+              >
+                <SelectValue placeholder="Wybierz klienta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" disabled>
+                  Wybierz klienta
+                </SelectItem>
+                <SelectSeparator />
+                {clients.map((client, i) => (
+                  <SelectItem key={i} value={client._id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex flex-col gap-2 w-full xl:w-1/4">
@@ -123,22 +156,29 @@ function Step({ currentStep, clients, projects }) {
               <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
               <Link to={"/projects"}>Nowy projekt</Link>
             </span>
-            <select
-              id="select-project"
-              name="name"
-              value={data["project"].name}
-              onChange={(e) => handleProjectChange(e)}
-              className="rounded-none rounded-r-lg px-2 bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full h-[43px] text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <Select
+              name="select-project"
+              value={data["details"].project_id}
+              onValueChange={(value) => handleProjectChange(value)}
             >
-              <option value={"default"} hidden>
-                Wybierz projekt...
-              </option>
-              {projects.map((project, i) => (
-                <option key={i} value={project.name} _id={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                name="project_id"
+                className="select-project rounded-none rounded-r-lg px-2 border w-full h-[43px] focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500"
+              >
+                <SelectValue placeholder="Wybierz projekt" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" disabled>
+                  Wybierz projekt
+                </SelectItem>
+                <SelectSeparator />
+                {projects.map((project, i) => (
+                  <SelectItem key={i} value={project._id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex lg:hidden gap-4">
@@ -193,19 +233,26 @@ function Step({ currentStep, clients, projects }) {
         <div className="flex flex-col xl:flex-row gap-5 w-[90%] m-auto xl:m-0">
           <div className="flex flex-col gap-2 w-full xl:w-1/4">
             <label>Metoda płatności:</label>
-            <select
-              id="payment_method"
-              name="payment_method"
+            <Select
               value={data["details"].payment_method}
-              onChange={(e) => handleDetailsChange(e)}
-              className="rounded-lg px-2 bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block min-w-0 w-full h-[43px] text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              onValueChange={(value) => handlePaymentChange(value)}
             >
-              <option value={"default"} hidden>
-                Wybierz metodę płatności...
-              </option>
-              <option value={"bank"}>Przelew</option>
-              <option value={"cash"}>Gotówka</option>
-            </select>
+              <SelectTrigger className="select-payment gap-2 px-2 border w-full h-[43px] focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500">
+                <SelectValue placeholder="Wybierz metodę płatności" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" disabled>
+                  Wybierz metodę płatności
+                </SelectItem>
+                <SelectSeparator />
+                <SelectItem value="bank">
+                  Przelew bankowy
+                </SelectItem>
+                <SelectItem value="cash">
+                  Gotówka
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <h1 className="text-3xl font-bold text-center">Produkty</h1>
@@ -297,13 +344,24 @@ function Step({ currentStep, clients, projects }) {
                       disabled
                     />
                   </td>
-                  <td className="text-center"><FontAwesomeIcon icon="fa-solid fa-trash" className="text-red-500 hover:text-red-700 cursor-pointer" onClick={() => removeProduct(i)}/></td>
+                  <td className="text-center">
+                    <FontAwesomeIcon
+                      icon="fa-solid fa-trash"
+                      className="text-red-500 hover:text-red-700 cursor-pointer"
+                      onClick={() => removeProduct(i)}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <Button className="bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700 w-60 m-auto xl:m-0" onClick={() => addProduct()}>Dodaj usługę/produkt</Button>
+        <Button
+          className="bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700 w-60 m-auto xl:m-0"
+          onClick={() => addProduct()}
+        >
+          Dodaj usługę/produkt
+        </Button>
       </div>
     );
   if (currentStep === 3)

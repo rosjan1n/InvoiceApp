@@ -29,7 +29,7 @@ function InvoiceCreator() {
   function nextStep() {
     if (index - 3)
     {
-      if(validation())
+      if(!validation())
         setIndex((prevIndex) => prevIndex + 1);
       else
       {
@@ -64,21 +64,20 @@ function InvoiceCreator() {
   function validation() {
     if(index === 1)
     {
-      var client = document.getElementById('select-client');
-      var project = document.getElementById('select-project');
-      if(client && project && client.value !== 'default' && client.value !== undefined && project.value !== 'default' && project.value !== undefined)
-      {
+      var client = document.getElementsByClassName('select-client');
+      var project = document.getElementsByClassName('select-project');
+      var CLIENT_VALUE = client[0].childNodes[0].textContent;
+      var PROJECT_VALUE = project[0].childNodes[0].textContent;
+      if(client && project && CLIENT_VALUE !== 'Wybierz klienta' && CLIENT_VALUE !== undefined && PROJECT_VALUE !== 'Wybierz projekt' && PROJECT_VALUE !== undefined)
         return true;
-      }
       return false;
     }
     if(index === 2)
     {
-      var payment_method = document.getElementById('payment_method');
-      if(payment_method && payment_method.value !== 'default' && payment_method.value !== undefined)
-      {
+      var payment_method = document.getElementsByClassName('select-payment');
+      var PAYMENT_VALUE = payment_method[0].childNodes[0].textContent;
+      if(payment_method && PAYMENT_VALUE !== 'Wybierz metodę płatności' && PAYMENT_VALUE !== undefined)
         return true;
-      }
       return false;
     }
   }
