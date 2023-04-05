@@ -150,8 +150,8 @@ function InvoiceDetails() {
           <header className="container-header">
             <h2 className="text-2xl font-bold">
               Szczegóły faktury{" "}
-              <span className="italic bg-indigo-400 p-1 rounded-lg text-white decoration-indigo-400 uppercase">
-                <span className=" font-extrabold">#</span>
+              <span className="italic bg-indigo-400 p-1 rounded-lg text-white decoration-indigo-400 uppercase select-all">
+                <span className="font-extrabold">#</span>
                 {invoice._id.substring(invoice._id.length - 6)}
               </span>
             </h2>
