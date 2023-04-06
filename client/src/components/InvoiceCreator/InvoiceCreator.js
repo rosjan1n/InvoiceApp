@@ -9,7 +9,7 @@ import { addInvoice } from "../../actions/invoices";
 /* Utils */
 import { useToast } from '../ui/use-toast.tsx';
 import { Button } from "../ui/button.tsx";
-import Step, { Data } from "./Step";
+import Step from "./Step";
 
 function InvoiceCreator() {
   const clients = useSelector((state) => state.clients);
@@ -21,15 +21,13 @@ function InvoiceCreator() {
 
   function prevStep() {
     if (index > 1)
-    {
       setIndex((prevIndex) => prevIndex - 1);
-    }
   }
 
-  function nextStep() {
-    if (index - 3)
+  function nextStep(data) {
+    if (index - 4)
     {
-      if(!validation())
+      if(validation())
         setIndex((prevIndex) => prevIndex + 1);
       else
       {
@@ -41,8 +39,7 @@ function InvoiceCreator() {
       }
     }
     else {
-      const data = Data();
-      dispatch(addInvoice(data))
+      dispatch(addInvoice(data.data))
       .then(() => {
         toast({
           variant: "success",
@@ -80,6 +77,7 @@ function InvoiceCreator() {
         return true;
       return false;
     }
+    return true;
   }
 
   return (
@@ -270,7 +268,7 @@ function InvoiceCreator() {
             </li>
           </ol>
         </div>
-        <Step currentStep={index} clients={clients} projects={projects} />
+        <Step currentStep={index} clients={clients} projects={projects} onSubmit={index === 4 ? nextStep : {}} />
       </div>
       <div className="flex gap-3 justify-end w-[90%] m-auto">
         <Button

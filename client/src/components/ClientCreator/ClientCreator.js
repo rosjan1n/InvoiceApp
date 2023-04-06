@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Utils */
 import { invoice_form } from "../../lib/utils";
-import MapCreator from "../ui/MapCreator";
+import MapContainer from "../ui/MapCreator";
 
 function ClientCreator() {
   const [client, setClient] = useState(invoice_form.client);
@@ -60,6 +60,19 @@ function ClientCreator() {
     }));
   };
 
+  const handleMapClick = (data) => {
+    setClient((prevClient) => ({
+      ...prevClient,
+      address: {
+        ...prevClient['address'],
+        city: data.city || '',
+        street: data.street || '',
+        postal_code: data.postal_code || '',
+      }
+    }));
+    console.log(client);
+  }
+
   return (
     <div className="flex gap-8 xl:gap-20 flex-col mb-6">
       <div className="flex justify-between w-[90%] mt-4 m-auto">
@@ -95,6 +108,7 @@ function ClientCreator() {
               id="name"
               type="text"
               name="name"
+              value={client['address'].street}
               placeholder="Ulica"
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
@@ -105,6 +119,7 @@ function ClientCreator() {
               id="name"
               type="text"
               name="name"
+              value={client['address'].city}
               placeholder="Miejscowość"
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
@@ -134,7 +149,10 @@ function ClientCreator() {
             />
           </div>
         </div>
-        <MapCreator/>
+        <div className="flex flex-col">
+          <h1 className="font-medium pb-10">Możesz zaznaczyć punkt na poniższej mapie, aby pola <span className="text-blue-500">Ulica</span>, <span className="text-blue-500">Miejscowość</span> oraz <span className="text-blue-500">Kod pocztowy</span> zostały uzupełnione danymi z zaznaczonego miejsca.</h1>
+          <MapContainer onMapClick={handleMapClick}/>
+        </div>
       </div>
     </div>
   );

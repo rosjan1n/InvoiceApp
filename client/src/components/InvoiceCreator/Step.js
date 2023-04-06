@@ -17,13 +17,7 @@ import { Button } from "../ui/button.tsx";
 /* Utils */
 import { invoice_form, calculateBrutto, calculateVat } from "../../lib/utils";
 
-let array;
-
-export const Data = () => {
-  return array;
-};
-
-function Step({ currentStep, clients, projects }) {
+function Step({ currentStep, clients, projects, onSubmit }) {
   const [data, setData] = useState(invoice_form);
 
   const handleClientChange = (value) => {
@@ -73,12 +67,12 @@ function Step({ currentStep, clients, projects }) {
   const handlePaymentChange = (value) => {
     setData((prevInvoice) => ({
       ...prevInvoice,
-      details:  {
-        ...prevInvoice['details'],
-        payment_method: value
-      }
-    }))
-  }
+      details: {
+        ...prevInvoice["details"],
+        payment_method: value,
+      },
+    }));
+  };
 
   const addProduct = () => {
     setData((prevInvoice) => ({
@@ -113,7 +107,6 @@ function Step({ currentStep, clients, projects }) {
     { value: 23, text: "23%" },
   ];
 
-  array = data;
   if (currentStep === 1)
     return (
       <div className="flex flex-col xl:flex-row gap-5 w-[90%] m-auto xl:m-0">
@@ -245,12 +238,8 @@ function Step({ currentStep, clients, projects }) {
                   Wybierz metodę płatności
                 </SelectItem>
                 <SelectSeparator />
-                <SelectItem value="bank">
-                  Przelew bankowy
-                </SelectItem>
-                <SelectItem value="cash">
-                  Gotówka
-                </SelectItem>
+                <SelectItem value="bank">Przelew bankowy</SelectItem>
+                <SelectItem value="cash">Gotówka</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -651,6 +640,7 @@ function Step({ currentStep, clients, projects }) {
         </div>
       </form>
     );
+  if (currentStep === 4) onSubmit({ data });
 }
 
 export default Step;
