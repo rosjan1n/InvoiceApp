@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Utils */
 import { invoice_form } from "../../lib/utils";
-import MapContainer from "../ui/MapCreator";
+import BuildMap from "../ui/MapCreator";
 
 function ClientCreator() {
   const [client, setClient] = useState(invoice_form.client);
@@ -61,16 +61,15 @@ function ClientCreator() {
   };
 
   const handleMapClick = (data) => {
-    setClient((prevClient) => ({
+     setClient((prevClient) => ({
       ...prevClient,
       address: {
         ...prevClient['address'],
-        city: data.city || '',
-        street: data.street || '',
-        postal_code: data.postal_code || '',
+        city: data.city,
+        street: data.address,
+        postal_code: data.postal_code,
       }
     }));
-    console.log(client);
   }
 
   return (
@@ -151,7 +150,7 @@ function ClientCreator() {
         </div>
         <div className="flex flex-col">
           <h1 className="font-medium pb-10">Możesz zaznaczyć punkt na poniższej mapie, aby pola <span className="text-blue-500">Ulica</span>, <span className="text-blue-500">Miejscowość</span> oraz <span className="text-blue-500">Kod pocztowy</span> zostały uzupełnione danymi z zaznaczonego miejsca.</h1>
-          <MapContainer onMapClick={handleMapClick}/>
+          <BuildMap onClick={handleMapClick}/>
         </div>
       </div>
     </div>

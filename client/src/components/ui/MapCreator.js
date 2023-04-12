@@ -1,61 +1,57 @@
-import React, { Component } from 'react';
-import { Map, GoogleApiWrapper } from 'google-maps-react';
+import Map, { NavigationControl } from "react-map-gl";
+import maplibregl from "maplibre-gl";
 
-class MapContainer extends Component {
-  constructor(props) {
-    super(props);
+const API_KEY = "lrSPvEBB773dRCBe8TvK";
 
-    this.state = {
-      street: '',
-      city: '',
-      postal_code: ''
-    };
-  }
-
-  handleMapClick = (t, map, coord) => {
-    const { latLng } = coord;
-    const lat = latLng.lat();
-    const lng = latLng.lng();
-
-    // Uzyskanie danych z API Google Maps
-    const geocoder = new this.props.google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === 'OK') {
-        const addressComponents = results[0].address_components;
-        const street = addressComponents.find(
-          component => component.types.includes('route')
-        )?.long_name;
-        const city = addressComponents.find(
-          component => component.types.includes('locality')
-        )?.long_name;
-        const postal_code = addressComponents.find(
-          component => component.types.includes('postal_code')
-        )?.long_name;
-
-        this.setState({ street, city, postal_code });
-
-        this.props.onMapClick({ street, city, postal_code });
-      } else {
-        console.log('Geocode was not successful for the following reason: ' + status);
-      }
-    });
+function BuildMap(props) {
+  const handleMapClick = (e) => {
+    const { lng, lat } = e.lngLat;
+    const apiUrl = `https://api.maptiler.com/geocoding/${lng},${lat}.json?key=${API_KEY}`;
+    fetch(apiUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        var address = "",
+          postal_code = "",
+          city = "";
+        for (let index = 0; index < data["features"].length - 1; index++) {
+          if (data.features[index].properties["country_code"] !== "pl") return;
+          if (data.features[index].id.includes("place"))
+            city = data.features[index].text;
+          if (data.features[index].id.includes("municipal_district"))
+            city = data.features[index].text;
+          if (data.features[index].id.includes("municipality"))
+            if(city === "")
+              city = data.features[index].text;
+          if (data.features[index].id.includes("county"))
+            if(city === "")
+              city = data.features[index].text;
+          if (data.features[index].id.includes("postal_code"))
+            postal_code = data.features[index].text;
+          if (data.features[index].id.includes("address")) {
+            var additional = data.features[index].address;
+            if (additional)
+              address = `${data.features[index].text} ${additional}`;
+            else address = `${data.features[index].text}`;
+          }
+        }
+        props.onClick({ address, postal_code, city });
+      });
   };
 
-  render() {
-    return (
-      <Map
-        google={this.props.google}
-        containerStyle={{"width": 50 + "%", "height": 65 + "%", "left": 25 + "%", "right": 25 + "%"}}
-        style={{"marginBottom": 5 + "rem"}}
-        initialCenter={{ lat: 52.2297, lng: 21.0122 }}
-        zoom={14}
-        onClick={this.handleMapClick}
-      />
-    );
-  }
+  return (
+    <Map
+      mapLib={maplibregl}
+      initialViewState={{
+        latitude: 52.22977,
+        longitude: 21.01178,
+        zoom: 10,
+      }}
+      style={{ width: "100%", height: "70vh" }}
+      mapStyle={`https://api.maptiler.com/maps/streets-v2/style.json?key=${API_KEY}`}
+      onClick={handleMapClick}
+    ></Map>
+  );
 }
 
-export default GoogleApiWrapper({
-  apiKey: "AIzaSyDIF438lNbCB5BSuBN_S-Jvj6PG711dKc",
-  language: "pl",
-})(MapContainer);
+export default BuildMap;
