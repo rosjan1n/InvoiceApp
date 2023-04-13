@@ -56,7 +56,7 @@ function ProjectCreator() {
         toast({
           variant: "success",
           title: "Pomyślnie stworzono projekt!",
-          description: `Projekt został dodany do listy projektów.`,
+          description: `Projekt został dodany do twojej listy projektów.`,
         });
         navigate("/home");
       })

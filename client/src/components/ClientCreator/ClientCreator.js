@@ -1,6 +1,14 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+/* Actions */
+import { addClient } from "../../actions/clients.js";
+
+/* Components */
+import { useToast } from "../ui/use-toast.tsx";
+import { Button } from "../ui/button.tsx";
 
 /* Utils */
 import { invoice_form } from "../../lib/utils";
@@ -9,68 +17,135 @@ import BuildMap from "../ui/MapCreator";
 function ClientCreator() {
   const [client, setClient] = useState(invoice_form.client);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
 
-  const formatPhoneNumber = (e) => {
-    const { value } = e.target;
-    if (isNaN(value)) return;
-    if (value.length > 9) return;
-    var cleaned = ("" + value).replace(/\D/g, "");
-    var match = cleaned.match(/^(\d{3})(\d{3})(\d{3})$/);
-    if (match) {
-      var result = match[1] + " " + match[2] + " " + match[3];
-      return setClient((prevClient) => ({
+  const handleClientChange = (e) => {
+    const { name, value } = e.target;
+    var finalFormat;
+    if (name === "name")
+      setClient((prevClient) => ({
         ...prevClient,
-        private: {
-          ...prevClient["private"],
-          phone_number: result,
-        },
+        name: value,
       }));
-    }
-    setClient((prevClient) => ({
-      ...prevClient,
-      private: {
-        ...prevClient["private"],
-        phone_number: value,
-      },
-    }));
-  };
-
-  const formatPostalCode = (e) => {
-    const { value } = e.target;
-    if (isNaN(value)) return;
-    if (value.length > 5) return;
-    var cleaned = ("" + value).replace(/\D/g, "");
-    var match = cleaned.match(/^(\d{2})(\d{3})$/);
-    if (match) {
-      var result = match[1] + "-" + match[2];
-      return setClient((prevClient) => ({
+    else if (name === "street" || name === "city")
+      setClient((prevClient) => ({
         ...prevClient,
         address: {
           ...prevClient["address"],
-          postal_code: result,
+          [name]: value,
+        },
+      }));
+    else if (name === "bank_account") {
+      if (isNaN(value) || value.length > 26) return;
+      var noLettersBank = ("" + value).replace(/\D/g, "");
+      var bankFormat = noLettersBank.match(
+        /^(\d{2})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})$/
+      );
+      if (bankFormat) {
+        finalFormat = `${bankFormat[1]} ${bankFormat[2]} ${bankFormat[3]} ${bankFormat[4]} ${bankFormat[5]} ${bankFormat[6]} ${bankFormat[7]}`;
+        return setClient((prevClient) => ({
+          ...prevClient,
+          private: {
+            ...prevClient["private"],
+            bank_account: finalFormat,
+          },
+        }));
+      }
+      setClient((prevClient) => ({
+        ...prevClient,
+        private: {
+          ...prevClient["private"],
+          bank_account: value,
+        },
+      }));
+    } else if (name === "nip") {
+      if (isNaN(value) || value.length > 10) return;
+      setClient((prevClient) => ({
+        ...prevClient,
+        private: {
+          ...prevClient["private"],
+          nip: value,
+        },
+      }));
+    } else if (name === "postal_code") {
+      if (isNaN(value) || value.length > 5) return;
+      var noLettersPostal = ("" + value).replace(/\D/g, "");
+      var postalFormat = noLettersPostal.match(/^(\d{2})(\d{3})$/);
+      if (postalFormat) {
+        finalFormat = `${postalFormat[1]}-${postalFormat[2]}`;
+        return setClient((prevClient) => ({
+          ...prevClient,
+          address: {
+            ...prevClient["address"],
+            postal_code: finalFormat,
+          },
+        }));
+      }
+      setClient((prevClient) => ({
+        ...prevClient,
+        address: {
+          ...prevClient["address"],
+          postal_code: value,
+        },
+      }));
+    } else if (name === "phone_number") {
+      if (isNaN(value) || value.length > 9) return;
+      var noLettersPhone = ("" + value).replace(/\D/g, "");
+      var phoneFormat = noLettersPhone.match(/^(\d{3})(\d{3})(\d{3})$/);
+      if (phoneFormat) {
+        finalFormat =
+          `${phoneFormat[1]} ${phoneFormat[2]} ${phoneFormat[3]}`;
+        return setClient((prevClient) => ({
+          ...prevClient,
+          private: {
+            ...prevClient["private"],
+            phone_number: finalFormat,
+          },
+        }));
+      }
+      setClient((prevClient) => ({
+        ...prevClient,
+        private: {
+          ...prevClient["private"],
+          phone_number: value,
         },
       }));
     }
+  };
+
+  const handleMapClick = (data) => {
     setClient((prevClient) => ({
       ...prevClient,
       address: {
         ...prevClient["address"],
-        postal_code: value,
+        city: data.city,
+        street: data.address,
+        postal_code: data.postal_code,
       },
     }));
   };
 
-  const handleMapClick = (data) => {
-     setClient((prevClient) => ({
-      ...prevClient,
-      address: {
-        ...prevClient['address'],
-        city: data.city,
-        street: data.address,
-        postal_code: data.postal_code,
-      }
-    }));
-  }
+  const createClient = (data) => {
+/*     data.private.bank_account = data.private.bank_account.replaceAll(" ", "");
+    data.private.phone_number = data.private.phone_number.replaceAll(" ", ""); */
+    dispatch(addClient(data))
+      .then(() => {
+        toast({
+          variant: "success",
+          title: "Pomyślnie stworzono klienta!",
+          description: `Klient został dodany do twojej listy klientów.`,
+        });
+        navigate("/home");
+      })
+      .catch(() => {
+        return toast({
+          variant: "destructive",
+          title: "Wystąpił błąd!",
+          description: `Wystąpił błąd podczas tworzenia klienta. Upewnij się czy wszystkie pola są uzupełnione.`,
+        });
+      });
+  };
 
   return (
     <div className="flex gap-8 xl:gap-20 flex-col mb-6">
@@ -90,7 +165,7 @@ function ClientCreator() {
         </div>
       </div>
       <div className="flex flex-col gap-5 w-[90%] m-auto">
-        <div className="flex gap-10">
+        <div className="flex flex-col xl:flex-row gap-3 xl:gap-10">
           <div className="flex flex-col gap-2">
             <label>Nazwa klienta:</label>
             <input
@@ -98,16 +173,19 @@ function ClientCreator() {
               type="text"
               name="name"
               placeholder="Nazwa klienta"
+              value={client.name}
+              onChange={(e) => handleClientChange(e)}
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
           </div>
           <div className="flex flex-col gap-2">
             <label>Ulica:</label>
             <input
-              id="name"
+              id="street"
               type="text"
-              name="name"
-              value={client['address'].street}
+              name="street"
+              value={client["address"].street}
+              onChange={(e) => handleClientChange(e)}
               placeholder="Ulica"
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
@@ -115,10 +193,11 @@ function ClientCreator() {
           <div className="flex flex-col gap-2">
             <label>Miejscowość:</label>
             <input
-              id="name"
+              id="city"
               type="text"
-              name="name"
-              value={client['address'].city}
+              name="city"
+              value={client["address"].city}
+              onChange={(e) => handleClientChange(e)}
               placeholder="Miejscowość"
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
@@ -126,31 +205,69 @@ function ClientCreator() {
           <div className="flex flex-col gap-2">
             <label>Kod pocztowy:</label>
             <input
-              id="name"
+              id="postal_code"
               type="text"
-              name="name"
+              name="postal_code"
               placeholder="Kod pocztowy"
               value={client["address"].postal_code}
-              onChange={(e) => formatPostalCode(e)}
+              onChange={(e) => handleClientChange(e)}
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
           </div>
           <div className="flex flex-col gap-2">
             <label>Numer telefonu:</label>
             <input
-              id="name"
+              id="phone_number"
               type="text"
-              name="name"
+              name="phone_number"
               placeholder="Numer telefonu"
               value={client["private"].phone_number}
-              onChange={(e) => formatPhoneNumber(e)}
+              onChange={(e) => handleClientChange(e)}
+              className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>Rachunek bankowy:</label>
+            <input
+              id="bank_account"
+              type="text"
+              name="bank_account"
+              placeholder="Rachunek bankowy"
+              value={client["private"].bank_account}
+              onChange={(e) => handleClientChange(e)}
+              className="rounded-lg justify-center w-full xl:w-[250px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>NIP:</label>
+            <input
+              id="nip"
+              type="number"
+              name="nip"
+              placeholder="NIP"
+              value={client["private"].nip}
+              onChange={(e) => handleClientChange(e)}
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
           </div>
         </div>
+        <div className="buttons w-full m-auto flex justify-end">
+          <Button
+            className="w-full xl:w-auto dark:text-white bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700"
+            onClick={() => createClient(client)}
+          >
+            Stwórz klienta
+          </Button>
+        </div>
         <div className="flex flex-col">
-          <h1 className="font-medium pb-10">Możesz zaznaczyć punkt na poniższej mapie, aby pola <span className="text-blue-500">Ulica</span>, <span className="text-blue-500">Miejscowość</span> oraz <span className="text-blue-500">Kod pocztowy</span> zostały uzupełnione danymi z zaznaczonego miejsca.</h1>
-          <BuildMap onClick={handleMapClick}/>
+          <h1 className="font-medium pb-10 text-justify">
+            Możesz zaznaczyć punkt na poniższej mapie, aby pola{" "}
+            <span className="text-blue-500">Ulica</span>,{" "}
+            <span className="text-blue-500">Miejscowość</span> oraz{" "}
+            <span className="text-blue-500">Kod pocztowy</span> zostały
+            uzupełnione danymi z zaznaczonego miejsca.
+          </h1>
+          <BuildMap onClick={handleMapClick} />
         </div>
       </div>
     </div>

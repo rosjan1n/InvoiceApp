@@ -5,13 +5,12 @@ class ClientController {
     const data = req.body;
 
     let client;
-
     try {
       client = new Client({
-        name: data.name,
-        project_id: data.project_id,
-        address: data.address,
-        private: data.private
+        name: data?.name,
+        project_id: data?.project_id,
+        address: data?.address,
+        private: data?.private
       });
       await client.save();
     } catch (error) {

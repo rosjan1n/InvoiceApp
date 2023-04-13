@@ -39,6 +39,7 @@ function InvoiceCreator() {
       }
     }
     else {
+      prevStep()
       dispatch(addInvoice(data.data))
       .then(() => {
         toast({
@@ -49,6 +50,7 @@ function InvoiceCreator() {
         navigate('/home');
       })
       .catch(() => {
+        prevStep()
         return toast({
           variant: "destructive",
           title: 'Wystąpił błąd!',

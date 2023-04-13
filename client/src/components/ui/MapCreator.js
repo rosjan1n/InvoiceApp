@@ -1,40 +1,35 @@
-import Map, { NavigationControl } from "react-map-gl";
+import Map from "react-map-gl";
 import maplibregl from "maplibre-gl";
 
 const API_KEY = "lrSPvEBB773dRCBe8TvK";
 
 function BuildMap(props) {
+  const getCity = (f) => {
+    const index = f.findIndex(element => (element.id.includes("municipal_district") || element.id.includes("place") || element.id.includes("county")));
+    if(index)
+      return f[index].text;
+    return false;
+  };
+
   const handleMapClick = (e) => {
     const { lng, lat } = e.lngLat;
-    const apiUrl = `https://api.maptiler.com/geocoding/${lng},${lat}.json?key=${API_KEY}`;
+    const apiUrl = `https://api.maptiler.com/geocoding/${lng},${lat}.json?key=${API_KEY}&types=address,postal_code,county,municipal_district`;
     fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         var address = "",
           postal_code = "",
-          city = "";
-        for (let index = 0; index < data["features"].length - 1; index++) {
-          if (data.features[index].properties["country_code"] !== "pl") return;
-          if (data.features[index].id.includes("place"))
-            city = data.features[index].text;
-          if (data.features[index].id.includes("municipal_district"))
-            city = data.features[index].text;
-          if (data.features[index].id.includes("municipality"))
-            if(city === "")
-              city = data.features[index].text;
-          if (data.features[index].id.includes("county"))
-            if(city === "")
-              city = data.features[index].text;
-          if (data.features[index].id.includes("postal_code"))
-            postal_code = data.features[index].text;
-          if (data.features[index].id.includes("address")) {
-            var additional = data.features[index].address;
-            if (additional)
-              address = `${data.features[index].text} ${additional}`;
-            else address = `${data.features[index].text}`;
+          city = getCity(data.features) || "";
+        data.features.forEach((f) => {
+          if (f.properties["country_code"] !== "pl") return;
+
+          if (f.id.includes("postal_code")) postal_code = f.text;
+          if (f.id.includes("address")) {
+            var additional = f.address;
+            if (additional) address = `${f.text} ${additional}`;
+            else address = `${f.text}`;
           }
-        }
+        });
         props.onClick({ address, postal_code, city });
       });
   };
@@ -47,7 +42,7 @@ function BuildMap(props) {
         longitude: 21.01178,
         zoom: 10,
       }}
-      style={{ width: "100%", height: "70vh" }}
+      style={{ width: "100%", height: "70vh", border: "1px", borderRadius: "200px" }}
       mapStyle={`https://api.maptiler.com/maps/streets-v2/style.json?key=${API_KEY}`}
       onClick={handleMapClick}
     ></Map>
