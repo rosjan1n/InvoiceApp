@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { addInvoice } from "../../actions/invoices";
+import { createInvoice, reset as resetInvoice } from "../../reducers/features/invoices/invoiceSlice";
+import { getClients, reset as resetClients } from "../../reducers/features/clients/clientSlice";
+import { getProjects, reset as resetProjects } from "../../reducers/features/projects/projectSlice";
 
 /* Utils */
 import { useToast } from '../ui/use-toast.tsx';
@@ -12,12 +14,35 @@ import { Button } from "../ui/button.tsx";
 import Step from "./Step";
 
 function InvoiceCreator() {
-  const clients = useSelector((state) => state.clients);
-  const projects = useSelector((state) => state.projects);
+  const { user } = useSelector((state) => state.auth);
+  const clientState = useSelector((state) => state.client);
+  const projectState = useSelector((state) => state.project);
+
+  const { clients, isLoading: clientIsLoading, isError: clientIsError, message: clientMessage } = clientState;
+  const { projects, isLoading: projectIsLoading, isError: projestIsError, message: projectMessage } = projectState;
   const [index, setIndex] = useState(1);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if(clientIsError)
+      console.log(clientMessage);
+    if(projestIsError)
+      console.log(projectMessage);
+
+    if(!user)
+      navigate('/login');
+
+    dispatch(getClients());
+    dispatch(getProjects());
+
+    return () => {
+      dispatch(resetClients());
+      dispatch(resetProjects());
+    }
+  }, [user, clientIsError, clientMessage, navigate, dispatch])
+
 
   function prevStep() {
     if (index > 1)
@@ -40,23 +65,7 @@ function InvoiceCreator() {
     }
     else {
       prevStep()
-      dispatch(addInvoice(data.data))
-      .then(() => {
-        toast({
-          variant: "success",
-          title: "Wystawiono fakturę!",
-          description: `Faktura została dodana do ostatnich transakcji.`,
-        })
-        navigate('/home');
-      })
-      .catch(() => {
-        prevStep()
-        return toast({
-          variant: "destructive",
-          title: 'Wystąpił błąd!',
-          description: `Wystąpił błąd podczas wystawiania faktury. Upewnij się czy wszystkie pola są uzupełnione.`,
-        })
-      });
+      dispatch(createInvoice(data.data));
     }
   }
 

@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import CountUp from "react-countup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import moment from "moment";
+
+/* Actions */
+import { getInvoices, reset as resetInvoices } from "../reducers/features/invoices/invoiceSlice";
+import { getClients, reset as resetClients } from "../reducers/features/clients/clientSlice";
+import { getProjects, reset as resetProjects } from "../reducers/features/projects/projectSlice";
 
 /* Utils */
 import { calculateDiscount } from "../lib/utils";
@@ -20,9 +26,41 @@ import {
 } from "./ui/select.tsx";
 
 function Home() {
-  const invoices = useSelector((state) => state.invoices);
-  const clients = useSelector((state) => state.clients);
-  const projects = useSelector((state) => state.projects);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const invoiceState = useSelector((state) => state.invoice);
+  const clientState = useSelector((state) => state.client);
+  const projectState = useSelector((state) => state.project);
+  
+  const { invoices, isLoading: invoiceIsLoading, isError: invoiceIsError, message: invoiceMessage } = invoiceState;
+  const { clients, isLoading: clientIsLoading, isError: clientIsError, message: clientMessage } = clientState;
+  const { projects, isLoading: projectIsLoading, isError: projestIsError, message: projectMessage } = projectState;
+
+  useEffect(() => {
+    if(invoiceIsError)
+      console.log(invoiceMessage);
+    if(clientIsError)
+      console.log(clientMessage);
+    if(projestIsError)
+      console.log(projectMessage);
+
+    if(!user)
+      navigate('/login');
+
+    dispatch(getInvoices());
+    dispatch(getClients());
+    dispatch(getProjects());
+
+    return () => {
+      dispatch(resetInvoices());
+      dispatch(resetClients());
+      dispatch(resetProjects());
+    }
+  }, [user, invoiceIsError, invoiceMessage, clientIsError, clientMessage, navigate, dispatch])
+
+  console.log(invoices);
+  console.log(clients);
 
   const clientName = (id) => {
     for (let index = 0; index < clients.length; index++)
@@ -55,7 +93,7 @@ function Home() {
     return total;
   };
 
-  if (!invoices || !projects || !clients) return <Loader />;
+  if (!invoices || !clients) return <Loader />;
 
   return (
     <div className="flex gap-8 flex-col mb-6">
@@ -133,7 +171,7 @@ function Home() {
           <div className="text-xl font-bold">Ostatnie Transakcje</div>
           <div className="recent-body">
             <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
-              {!invoices.length ? (
+              {(invoiceIsLoading || invoiceIsError || !invoices.length) ? (
                 <Start
                   title={"Brak transakcji"}
                   subtitle={"Rozpocznij swoją przygodę już teraz!"}
@@ -200,7 +238,7 @@ function Home() {
           <div className="text-xl font-bold">Ostatnie Projekty</div>
           <div className="recent-body">
             <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
-              {!projects.length ? (
+              {(projectIsLoading || projestIsError || !projects.length) ? (
                 <Start
                   title={"Brak projektów"}
                   subtitle={"Rozpocznij swoją przygodę już teraz!"}

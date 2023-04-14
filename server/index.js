@@ -3,6 +3,7 @@ const config = require("./config/config");
 const api = require("./api/api.js");
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cors());
 
 // routes
 app.use('/api/', api);
+app.use(errorHandler);
 
 app.listen(config.port, function() {
     console.log('[Invoice-API] Database and API have been started.');

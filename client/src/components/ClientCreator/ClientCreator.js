@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { addClient } from "../../actions/clients.js";
+import { createClient } from '../../reducers/features/clients/clientSlice';
 
 /* Components */
 import { useToast } from "../ui/use-toast.tsx";
@@ -126,25 +126,10 @@ function ClientCreator() {
     }));
   };
 
-  const createClient = (data) => {
-/*     data.private.bank_account = data.private.bank_account.replaceAll(" ", "");
-    data.private.phone_number = data.private.phone_number.replaceAll(" ", ""); */
-    dispatch(addClient(data))
-      .then(() => {
-        toast({
-          variant: "success",
-          title: "Pomyślnie stworzono klienta!",
-          description: `Klient został dodany do twojej listy klientów.`,
-        });
-        navigate("/home");
-      })
-      .catch(() => {
-        return toast({
-          variant: "destructive",
-          title: "Wystąpił błąd!",
-          description: `Wystąpił błąd podczas tworzenia klienta. Upewnij się czy wszystkie pola są uzupełnione.`,
-        });
-      });
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    dispatch(createClient(client));
   };
 
   return (
@@ -254,7 +239,7 @@ function ClientCreator() {
         <div className="buttons w-full m-auto flex justify-end">
           <Button
             className="w-full xl:w-auto dark:text-white bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700"
-            onClick={() => createClient(client)}
+            onClick={onSubmit}
           >
             Stwórz klienta
           </Button>

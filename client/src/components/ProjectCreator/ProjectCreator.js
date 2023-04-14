@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { addProject } from "../../actions/projects";
+import { getClients, reset } from "../../reducers/features/clients/clientSlice";
+import { createProject } from "../../reducers/features/projects/projectSlice";
 
 /* Utils */
 import { invoice_form } from "../../lib/utils";
@@ -19,14 +21,28 @@ import {
 } from "../ui/select.tsx";
 import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
-import { useState } from "react";
 
 function ProjectCreator() {
   const [project, setProject] = useState(invoice_form.project);
-  const clients = useSelector((state) => state.clients);
+  const { user } = useSelector((state) => state.auth);
+  const { clients, isLoading, isError, message} = useSelector((state) => state.client);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if(isError)
+      console.log(message)
+
+    if(!user)
+      navigate('/login');
+
+    dispatch(getClients());
+
+    return(() => {
+      dispatch(reset());
+    })
+  }, [user, isError, message, navigate, dispatch])
 
   const handleNameChange = (e) => {
     const { name, value } = e.target;
@@ -50,23 +66,11 @@ function ProjectCreator() {
     }));
   };
 
-  const createProject = (data) => {
-    dispatch(addProject(data))
-      .then(() => {
-        toast({
-          variant: "success",
-          title: "Pomyślnie stworzono projekt!",
-          description: `Projekt został dodany do twojej listy projektów.`,
-        });
-        navigate("/home");
-      })
-      .catch(() => {
-        return toast({
-          variant: "destructive",
-          title: "Wystąpił błąd!",
-          description: `Wystąpił błąd podczas tworzenia projektu. Upewnij się czy wszystkie pola są uzupełnione.`,
-        });
-      });
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    console.log(project);
+    dispatch(createProject(project));
   };
 
   return (
@@ -146,7 +150,7 @@ function ProjectCreator() {
                 <SelectSeparator />
                 {clients.map((client, i) => (
                   <SelectItem key={i} value={client._id}>
-                    {client.name}
+                    {client.name} <span className="uppercase font-semibold">({client._id.substring(client._id.length - 6)})</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -157,7 +161,7 @@ function ProjectCreator() {
       <div className="buttons w-[90%] m-auto flex justify-end">
         <Button
           className="dark:text-white bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700"
-          onClick={() => createProject(project)}
+          onClick={onSubmit}
         >
           Utwórz projekt
         </Button>

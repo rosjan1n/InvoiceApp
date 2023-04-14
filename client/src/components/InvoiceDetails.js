@@ -326,6 +326,7 @@ function InvoiceDetails() {
           </div>
           <div className="grid md:grid-cols-2 md:gap-6">
             <div className="relative z-0 w-full mb-6 group">
+              {/* TODO - Select with available user projects*/}
               <input
                 type="text"
                 name="name"
@@ -343,6 +344,7 @@ function InvoiceDetails() {
               </label>
             </div>
             <div className="relative z-0 w-full mb-6 group">
+              {/* TODO - Select with available categories*/}
               <input
                 type="text"
                 name="category"

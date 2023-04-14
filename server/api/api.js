@@ -1,27 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const invoiceController = require('../controllers/api/InvoiceController.js');
-const clientController = require('../controllers/api/ClientController.js');
-const projectController = require('../controllers/api/ProjectController.js');
+const {
+  registerUser,
+  loginUser,
+} = require("../controllers/api/UserController.js");
+const invoiceController = require("../controllers/api/InvoiceController.js");
+const clientController = require("../controllers/api/ClientController.js");
+const projectController = require("../controllers/api/ProjectController.js");
 
+const { protect } = require("../middleware/authMiddleware.js");
+
+/* Auth API */
+router.post("/users/signin", registerUser);
+router.post("/users/login", loginUser);
 
 /* Clients API */
-router.get('/clients', clientController.getAllClients);
-router.get('/clients/:id', clientController.getClient);
-router.post('/clients', clientController.saveClient);
+router
+  .route("/clients")
+  .get(protect, clientController.getClients)
+  .post(protect, clientController.createClient);
 
 /* Projects API */
-router.get('/projects', projectController.getAllProjects);
-router.get('/projects/:id', projectController.getProject);
-router.post('/projects', projectController.saveProject);
+router
+  .route("/projects")
+  .get(protect, projectController.getProjects)
+  .post(protect, projectController.createProject);
 
 /* Invoices API */
-router.get('/invoices', invoiceController.getAllInvoices);
-router.get('/invoices/:id', invoiceController.getInvoice);
-router.put('/invoices/:id', invoiceController.editInvoice);
-router.post('/invoices', invoiceController.saveInvoice);
-router.delete('/invoices/:id', invoiceController.deleteInvoice);
-
+router
+  .route("/invoices")
+  .get(protect, invoiceController.getInvoices)
+  .post(protect, invoiceController.createInvoice);
+router
+  .route("/invoices/:id")
+  .put(protect, invoiceController.updateInvoice)
+  .delete(protect, invoiceController.deleteInvoice);
 
 module.exports = router;

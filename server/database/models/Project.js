@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
 
-const ProjectSchema = new mongoose.Schema([{
+const ProjectSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
   name: {
     type: String,
-    required: true
+    required: [true, 'Wprowadź nazwę projektu']
   },
   client_id: {
     type: String,
@@ -11,14 +16,12 @@ const ProjectSchema = new mongoose.Schema([{
   },
   category: {
     type: String,
-    required: true
+    required: [true, 'Wprowadź kategorię projektu']
   },
   status: {
     type: Number,
-    required: true
+    required: [true, 'Wprowadź status projektu']
   }
-}]);
+});
 
-const Project = mongoose.model('Project', ProjectSchema);
-
-module.exports = Project;
+module.exports = mongoose.model('Project', ProjectSchema);;

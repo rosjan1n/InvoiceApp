@@ -1,44 +1,29 @@
+const asyncHandler = require('express-async-handler');
+
 const Project = require('../../database/models/Project');
+const User = require('../../database/models/User');
 
-class ProjectController {
-  async saveProject(req, res) {
-    const data = req.body;
-    let project;
+const getProjects = asyncHandler(async (req, res) => {
+  const project = await Project.find({ user: req.user.id });
 
-    try {
-      project = new Project({
-        name: data.name,
-        client_id: data.client_id,
-        category: data.category,
-        status: data.status
-      });
-      await project.save();
-    } catch (error) {
-      return res.status(422).json({ message: error.message });
-    }
-    res.status(201).json(project);
-  }
+  res.status(200).json(project);
+})
 
-  async getAllProjects(req, res) {
-    let data;
-    try {
-      data = await Project.find({});
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-    res.status(200).json(data);
-  }
+const createProject = asyncHandler(async (req, res) => {
+  console.log(req);
 
-  async getProject(req, res) {
-    let data;
-    try {
-      const id = req.params.id;
-      data = await Project.findOne({ _id: id });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-    res.status(200).json(data);
-  }
+  const project = await Project.create({
+    name: req.body.name,
+    client_id: req.body.client_id,
+    category: req.body.category,
+    status: req.body.status,
+    user: req.user.id
+  })
+
+  res.status(200).json(project);
+})
+
+module.exports = {
+  getProjects,
+  createProject
 }
-
-module.exports = new ProjectController();

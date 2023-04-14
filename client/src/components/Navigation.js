@@ -1,11 +1,21 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSelector, useDispatch } from "react-redux";
+import { logout, reset } from "../reducers/features/auth/authSlice";
 
-/* Assets */
-import image from "../assets/images/picture.jpg";
+/* UI Components */
+import { Button } from "./ui/button.tsx";
 
 function Navigation() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+  const onLogout = () => {
+    dispatch(logout());
+    dispatch(reset());
+    navigate("/signin");
+  };
 
   const refreshPage = () => {
     navigate(window.location.pathname);
@@ -110,11 +120,13 @@ function Navigation() {
               <div className="flex items-center justify-center xl:justify-end gap-10">
                 <FontAwesomeIcon icon="fa-solid fa-magnifying-glass"></FontAwesomeIcon>
                 <FontAwesomeIcon icon="fa-regular fa-bell" />
-                <img
-                  className="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
-                  src={image}
-                  alt="Bordered avatar"
-                />
+                {user ? (
+                  <Button variant={"destructive"} onClick={onLogout}>
+                    Wyloguj się
+                  </Button>
+                ) : (
+                  <Link to={'/login'}><Button variant={"default"}>Zaloguj się</Button></Link>
+                )}
               </div>
             </div>
           </div>

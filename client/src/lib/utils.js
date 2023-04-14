@@ -18,8 +18,8 @@ export const calculateTotal = (data) => {
   data.products.map((product) => {
     return (total += calculateBrutto(product));
   });
-  data.details.total = total;
-  return total;
+
+  return { ...data.details.total, total };
 };
 
 export const calculateDiscount = (data) => {

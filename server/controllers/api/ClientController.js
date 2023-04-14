@@ -1,44 +1,33 @@
+const asyncHandler = require('express-async-handler');
+
 const Client = require('../../database/models/Client');
+const User = require('../../database/models/User');
 
-class ClientController {
-  async saveClient(req, res) {
-    const data = req.body;
+const getClients = asyncHandler(async (req, res) => {
+  console.log(req.user.id);
+  const clients = await Client.find({ user: req.user.id });
 
-    let client;
-    try {
-      client = new Client({
-        name: data?.name,
-        project_id: data?.project_id,
-        address: data?.address,
-        private: data?.private
-      });
-      await client.save();
-    } catch (error) {
-      return res.status(422).json({ message: error.message });
-    }
-    res.status(201).json(client);
+  console.log(clients);
+  res.status(200).json(clients);
+})
+
+const createClient = asyncHandler(async (req, res) => {
+  if(!req.body.name || !req.body.address.street || !req.body.address.city || !req.body.address.postal_code || !req.body.private.phone_number || !req.body.private.bank_account || !req.body.private.nip) {
+    res.status(400);
+    throw new Error('Uzupełnij wszystkie pola')
   }
 
-  async getAllClients(req, res) {
-    let data;
-    try {
-      data = await Client.find({});
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-    res.status(200).json(data);
-  }
+  const client = await Client.create({
+    name: req.body.name,
+    address: req.body.address,
+    private: req.body.private,
+    user: req.user.id
+  })
 
-  async getClient(req, res) {
-    let data;
-    try {
-      const id = req.params.id;
-      data = await Client.findOne({ _id: id });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-    res.status(200).json(data);
-  }
+  res.status(200).json(client);
+})
+
+module.exports = {
+  getClients,
+  createClient
 }
-
-module.exports = new ClientController();

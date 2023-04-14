@@ -135,7 +135,7 @@ function Step({ currentStep, clients, projects, onSubmit }) {
                 <SelectSeparator />
                 {clients.map((client, i) => (
                   <SelectItem key={i} value={client._id}>
-                    {client.name}
+                    {client.name} <span className="uppercase font-semibold">({client._id.substring(client._id.length - 6)})</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -167,7 +167,7 @@ function Step({ currentStep, clients, projects, onSubmit }) {
                 <SelectSeparator />
                 {projects.map((project, i) => (
                   <SelectItem key={i} value={project._id}>
-                    {project.name}
+                    {project.name} (<span className="uppercase font-semibold">{project._id.substring(project._id.length - 6)}</span>)
                   </SelectItem>
                 ))}
               </SelectContent>

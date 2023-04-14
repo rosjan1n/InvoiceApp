@@ -8,11 +8,6 @@ import "@fontsource/inter";
 /* CSS */
 import './assets/css/style.css';
 
-/* Actions */
-import { getInvoices } from './actions/invoices';
-import { getClients } from './actions/clients';
-import { getProjects } from './actions/projects';
-
 /* Components */
 import Navigation from './components/Navigation';
 import Home from './components/Home';
@@ -21,6 +16,8 @@ import ProjectDetails from './components/ProjectDetails';
 import InvoiceCreator from './components/InvoiceCreator/InvoiceCreator';
 import ProjectCreator from './components/ProjectCreator/ProjectCreator';
 import ClientCreator from './components/ClientCreator/ClientCreator';
+import Register from './components/Auth/Register';
+import Login from './components/Auth/Login';
 import { Toaster } from './components/ui/toaster.tsx';
 
 /* Font awesome */
@@ -31,13 +28,6 @@ import { far } from '@fortawesome/free-regular-svg-icons';
 library.add(fas, far);
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(getInvoices());
-    dispatch(getClients());
-    dispatch(getProjects());
-  }, [dispatch])
   return (
     <div className="App">
       <BrowserRouter>
@@ -45,6 +35,8 @@ function App() {
           <Route element={<Navigation /> }>
             <Route path='/' element={<Navigate to='/home' replace />} />
             <Route path='/home' element={<Home />} />
+            <Route path='/signin' element={<Register />} />
+            <Route path='/login' element={<Login />} />
             <Route path='/projects' element={<ProjectCreator />} />
             <Route path='/invoices' element={<InvoiceCreator />} />
             <Route path='/clients' element={<ClientCreator />} />

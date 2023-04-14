@@ -1,75 +1,77 @@
+const asyncHandler = require('express-async-handler');
+
 const Invoice = require('../../database/models/Invoice');
+const User = require('../../database/models/User');
 
-class InvoiceController {
-    async saveInvoice(req, res) {
-      const data = req.body;
-      let invoice;
+const getInvoices = asyncHandler(async (req, res) => {
+  const invoices = await Invoice.find({ user: req.user.id });
 
-      try {
-        invoice = new Invoice({ 
-            details: data.details,
-            client: data.client,
-            project: data.project,
-            products: data.products
-        });
-        await invoice.save();
-      } catch (error) {
-        return res.status(422).json({ message: error.message });
-      }
+  res.status(200).json(invoices);
+})
 
-      res.status(201).json(invoice);
-    }
+const createInvoice = asyncHandler(async (req, res) => {
+  const invoice = await Invoice.create({
+    details: req.body.details,
+    client: req.body.client,
+    project: req.body.project,
+    products: req.body.products,
+    editedAt: req.body.editedAt,
+    user: req.user.id
+  });
 
-    async editInvoice(req, res) {
-      try {
-        const id = req.params.id;
-        const data = req.body;
-        const invoice = await Invoice.findOne({ _id: id });
-        invoice.details = data.details;
-        invoice.client = data.client;
-        invoice.project = data.project;
-        invoice.products = data.products;
-        invoice.editedAt = data.editedAt;
-        await invoice.save();
-        res.status(201).json(invoice);
-    } catch (error) {
-        return res.status(422).json({ message: error.message });
-      }
-    }
+  res.status(200).json(invoice);
+})
 
-    async getAllInvoices(req, res) {
-      let doc;
-      try {
-        doc = await Invoice.find({});
-      } catch (error) {
-        return res.status(500).json({ message: error.message });
-      }
-      
-      res.status(200).json(doc);
-    }
+const updateInvoice = asyncHandler(async (req, res) => {
+  const invoice = await Invoice.findById(req.params.id)
 
-    async getInvoice(req, res) {
-      let doc;
-      try {
-        const id = req.params.id;
-        doc = await Invoice.findOne({ _id: id });
-      } catch (error) {
-        return res.status(500).json({ message: error.message });
-      }
+  if (!invoice) {
+    res.status(400)
+    throw new Error('Nieznaleziono faktury')
+  }
 
-      res.status(200).json(doc);
-    }
+  if (!req.user) {
+    res.status(401)
+    throw new Error('Nieznaleziono użytkownika')
+  }
 
-    async deleteInvoice(req, res) {
-      try {
-        const id = req.params.id;
-        await Invoice.deleteOne({ _id: id });
-      } catch (error) {
-        return res.status(500).json({ message: error.message });
-      }
+  if (invoice.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('User not authorized')
+  }
 
-      res.status(200).json({ message: "Usunięto" });
-    }
+  const updatedInvoice = await Invoice.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  })
+
+  res.status(200).json(updatedInvoice)
+})
+
+const deleteInvoice = asyncHandler(async (req, res) => {
+  const invoice = await Invoice.findById(req.params.id)
+
+  if (!invoice) {
+    res.status(400)
+    throw new Error('Nieznaleziono faktury')
+  }
+
+  if (!req.user) {
+    res.status(401)
+    throw new Error('Nieznaleziono użytkownika')
+  }
+  if (invoice.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('User not authorized')
+  }
+
+  await invoice.remove()
+
+  res.status(200).json({ id: req.params.id })
+})
+
+module.exports = {
+  getInvoices,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice
 }
-
-module.exports = new InvoiceController();
