@@ -120,6 +120,23 @@ function Home() {
     return total;
   };
 
+  function nFormatter(num, digits) {
+    const lookup = [
+      { value: 1, symbol: "" },
+      { value: 1e3, symbol: "K" },
+      { value: 1e6, symbol: "M" },
+      { value: 1e9, symbol: "G" },
+      { value: 1e12, symbol: "T" },
+      { value: 1e15, symbol: "P" },
+      { value: 1e18, symbol: "E" }
+    ];
+    const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+    var item = lookup.slice().reverse().find(function(item) {
+      return num >= item.value;
+    });
+    return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+  }
+
   if (!invoices || !clients) return <Loader />;
 
   return (
@@ -149,47 +166,49 @@ function Home() {
         </div>
       </div>
       <div className="flex flex-col gap-10 xl:flex-row justify-between w-[90%] m-auto">
-        <div className="flex items-center flex-col p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="text-xl">
-            <FontAwesomeIcon icon="fa-solid fa-layer-group" />
+        <div className="flex flex-col bg-[#C7FFC7] dark:bg-[#C7FFC7] flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
+          <div className="flex gap-40">
+            <div className="text-3xl font-bold">
+              <CountUp end={clients.length} duration={0.8} />
+            </div>
+            <div className="text-3xl">
+              <FontAwesomeIcon className="text-[#2a922a]" icon="fa-solid fa-user" />
+            </div>
           </div>
-          <div className="text-2xl">Klienci</div>
-          <div className="text-3xl font-bold">
-            <CountUp end={clients.length} duration={0.8} />
-          </div>
+          <div className="text-2xl font-light">Klienci</div>
         </div>
-        <div className="flex items-center flex-col p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="text-xl">
-            <FontAwesomeIcon icon="fa-solid fa-file-lines" />
+        <div className="flex flex-col bg-purple-300 flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
+          <div className="flex items-center gap-40">
+            <div className="text-3xl font-bold">
+              <CountUp end={invoices.length} duration={0.8} />
+            </div>
+            <div className="text-3xl">
+              <FontAwesomeIcon className="text-purple-500" icon="fa-solid fa-file-invoice" />
+            </div>
           </div>
-          <div className="text-2xl">Faktury</div>
-          <div className="text-3xl font-bold">
-            <CountUp end={invoices.length} duration={0.8} />
-          </div>
+          <div className="text-2xl font-light">Faktury</div>
         </div>
-        <div className="flex items-center flex-col p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="text-xl">
-            <FontAwesomeIcon icon="fa-solid fa-folder" />
+        <div className="flex flex-col bg-orange-300 flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
+          <div className="flex items-center gap-40">
+            <div className="text-3xl font-bold">
+              <CountUp end={projects.length} duration={0.8} />
+            </div>
+            <div className="text-3xl">
+              <FontAwesomeIcon className="text-orange-500" icon="fa-solid fa-folder" />
+            </div>
           </div>
-          <div className="text-2xl">Projekty</div>
-          <div className="text-3xl font-bold">
-            <CountUp end={projects.length} duration={0.8} />
-          </div>
+          <div className="text-2xl font-light">Projekty</div>
         </div>
-        <div className="flex items-center flex-col p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="text-xl">
-            <FontAwesomeIcon icon="fa-solid fa-hand-holding-dollar" />
+        <div className="flex flex-col bg-blue-300 flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
+          <div className="flex items-center gap-40">
+            <div className="text-3xl font-bold">
+              ${nFormatter(paidInvoices())}
+            </div>
+            <div className="text-3xl">
+              <FontAwesomeIcon className="text-blue-500" icon="fa-solid fa-dollar-sign" />
+            </div>
           </div>
-          <div className="text-2xl">Opłacone faktury</div>
-          <div className="text-3xl font-bold">
-            ${" "}
-            <CountUp
-              end={paidInvoices()}
-              decimal="."
-              decimals={2}
-              duration={0.8}
-            />
-          </div>
+          <div className="text-2xl font-light">Opłacone faktury</div>
         </div>
       </div>
 
@@ -197,7 +216,7 @@ function Home() {
         <div className="flex flex-col whitespace-nowrap w-full xl:w-[40%] p-3 gap-8">
           <div className="text-xl font-bold">Ostatnie Transakcje</div>
           <div className="recent-body">
-            <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
+            <div className="flex flex-col h-[21rem] overflow-auto border rounded-3xl border-gray-200 dark:border-slate-700 shadow-lg">
               {invoiceIsLoading || invoiceIsError || !invoices.length ? (
                 <Start
                   title={"Brak transakcji"}
@@ -264,7 +283,7 @@ function Home() {
         <div className="flex flex-col whitespace-nowrap w-full xl:w-[40%] p-3 gap-8">
           <div className="text-xl font-bold">Ostatnie Projekty</div>
           <div className="recent-body">
-            <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
+            <div className="flex flex-col h-[21rem] overflow-auto border rounded-3xl border-gray-200 dark:border-slate-700 shadow-lg">
               {projectIsLoading || projestIsError || !projects.length ? (
                 <Start
                   title={"Brak projektów"}

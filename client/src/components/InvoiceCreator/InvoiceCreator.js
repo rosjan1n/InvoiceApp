@@ -4,12 +4,21 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { createInvoice, reset as resetInvoice } from "../../reducers/features/invoices/invoiceSlice";
-import { getClients, reset as resetClients } from "../../reducers/features/clients/clientSlice";
-import { getProjects, reset as resetProjects } from "../../reducers/features/projects/projectSlice";
+import {
+  createInvoice,
+  reset as resetInvoice,
+} from "../../reducers/features/invoices/invoiceSlice";
+import {
+  getClients,
+  reset as resetClients,
+} from "../../reducers/features/clients/clientSlice";
+import {
+  getProjects,
+  reset as resetProjects,
+} from "../../reducers/features/projects/projectSlice";
 
 /* Utils */
-import { useToast } from '../ui/use-toast.tsx';
+import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 import Step from "./Step";
 
@@ -18,21 +27,28 @@ function InvoiceCreator() {
   const clientState = useSelector((state) => state.client);
   const projectState = useSelector((state) => state.project);
 
-  const { clients, isLoading: clientIsLoading, isError: clientIsError, message: clientMessage } = clientState;
-  const { projects, isLoading: projectIsLoading, isError: projestIsError, message: projectMessage } = projectState;
+  const {
+    clients,
+    isLoading: clientIsLoading,
+    isError: clientIsError,
+    message: clientMessage,
+  } = clientState;
+  const {
+    projects,
+    isLoading: projectIsLoading,
+    isError: projestIsError,
+    message: projectMessage,
+  } = projectState;
   const [index, setIndex] = useState(1);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
 
   useEffect(() => {
-    if(clientIsError)
-      console.log(clientMessage);
-    if(projestIsError)
-      console.log(projectMessage);
+    if (clientIsError) console.log(clientMessage);
+    if (projestIsError) console.log(projectMessage);
 
-    if(!user)
-      return navigate('/login');
+    if (!user) return navigate("/login");
 
     dispatch(getClients());
     dispatch(getProjects());
@@ -40,51 +56,63 @@ function InvoiceCreator() {
     return () => {
       dispatch(resetClients());
       dispatch(resetProjects());
-    }
-  }, [user, clientIsError, clientMessage, projectMessage, projestIsError, navigate, dispatch])
-
+    };
+  }, [
+    user,
+    clientIsError,
+    clientMessage,
+    projectMessage,
+    projestIsError,
+    navigate,
+    dispatch,
+  ]);
 
   function prevStep() {
-    if (index > 1)
-      setIndex((prevIndex) => prevIndex - 1);
+    if (index > 1) setIndex((prevIndex) => prevIndex - 1);
   }
 
   function nextStep(data) {
-    if (index - 4)
-    {
-      if(validation())
-        setIndex((prevIndex) => prevIndex + 1);
-      else
-      {
+    if (index - 4) {
+      if (validation()) setIndex((prevIndex) => prevIndex + 1);
+      else {
         return toast({
           variant: "destructive",
-          title: 'Wystąpił błąd!',
-          description: 'Aby przejść do kolejnego kroku musisz uzupełnić wszystkie pola.'
+          title: "Wystąpił błąd!",
+          description:
+            "Aby przejść do kolejnego kroku musisz uzupełnić wszystkie pola.",
         });
       }
-    }
-    else {
-      prevStep()
+    } else {
+      prevStep();
       dispatch(createInvoice(data.data));
     }
   }
 
   function validation() {
-    if(index === 1)
-    {
-      var client = document.getElementsByClassName('select-client');
-      var project = document.getElementsByClassName('select-project');
+    if (index === 1) {
+      var client = document.getElementsByClassName("select-client");
+      var project = document.getElementsByClassName("select-project");
       var CLIENT_VALUE = client[0].childNodes[0].textContent;
       var PROJECT_VALUE = project[0].childNodes[0].textContent;
-      if(client && project && CLIENT_VALUE !== 'Wybierz klienta' && CLIENT_VALUE !== undefined && PROJECT_VALUE !== 'Wybierz projekt' && PROJECT_VALUE !== undefined)
+      if (
+        client &&
+        project &&
+        CLIENT_VALUE !== "Wybierz klienta" &&
+        CLIENT_VALUE !== undefined &&
+        PROJECT_VALUE !== "Wybierz projekt" &&
+        PROJECT_VALUE !== undefined
+      )
         return true;
       return false;
     }
-    if(index === 2)
-    {
-      var payment_method = document.getElementsByClassName('select-payment');
+    if (index === 2) {
+      var payment_method = document.getElementsByClassName("select-payment");
       var PAYMENT_VALUE = payment_method[0].childNodes[0].textContent;
-      if(payment_method && PAYMENT_VALUE !== 'Wybierz metodę płatności' && PAYMENT_VALUE !== undefined)
+      if (
+        payment_method &&
+        PAYMENT_VALUE !== "Wybierz metodę płatności" &&
+        PAYMENT_VALUE !== undefined
+      )
         return true;
       return false;
     }
@@ -279,7 +307,12 @@ function InvoiceCreator() {
             </li>
           </ol>
         </div>
-        <Step currentStep={index} clients={clients} projects={projects} onSubmit={index === 4 ? nextStep : {}} />
+        <Step
+          currentStep={index}
+          clients={clients}
+          projects={projects}
+          onSubmit={index === 4 ? nextStep : {}}
+        />
       </div>
       <div className="flex gap-3 justify-end w-[90%] m-auto">
         <Button

@@ -20,7 +20,7 @@ export const calculateTotal = (data) => {
 };
 
 export const calculateDiscount = (data) => {
-  var n = parseFloat(calculateTotal(data));
+  var n = parseFloat(calculateTotal(data).total);
   return n - n * (parseFloat(data.details.discount) / 100);
 };
 

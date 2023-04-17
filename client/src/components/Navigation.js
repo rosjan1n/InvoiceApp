@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, reset } from "../reducers/features/auth/authSlice";
+import { Navbar, Dropdown, Avatar } from "flowbite-react";
 
 /* UI Components */
 import { Button } from "./ui/button.tsx";
@@ -10,6 +11,7 @@ function Navigation() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const [theme, setTheme] = useState(false);
 
   const onLogout = () => {
     dispatch(logout());
@@ -17,121 +19,93 @@ function Navigation() {
     navigate("/signin");
   };
 
-  const refreshPage = () => {
-    navigate(window.location.pathname);
-  };
+  const handleTheme = (value) => {
+    const html = document.documentElement;
+    {value ? html.setAttribute('data-theme', 'dark') : html.setAttribute('data-theme', 'light')};
+  }
+
   return (
     <div>
       <header>
-        <nav className=" w-11/12 m-auto mt-4 mb-4 whitespace-nowrap sticky">
-          <div className="flex flex-col xl:flex-row justify-between">
-            <div className="p-2 m-auto text-center xl:text-left xl:w-1/5">
-              <h2 className="text-xl font-bold">Generator faktur</h2>
-            </div>
-            <div className="m-auto w-3/6">
-              <ul className="flex pb-3 xl:pb-0 items-center justify-around list-none">
-                <li>
-                  <Link
-                    className={
-                      window.location.pathname.match("/home")
-                        ? "rounded p-3 font-medium"
-                        : "rounded p-3 transition-all hover:bg-gray-100 dark:hover:text-slate-900 hover:border hover:border-slate-300 hover:shadow-lg"
-                    }
-                    to="/home"
-                    onClick={refreshPage}
-                  >
-                    <span
-                      className={
-                        window.location.pathname.match("/home")
-                          ? "border-b-4 rounded pb-1 border-indigo-400 dark:border-white"
-                          : ""
-                      }
-                    >
-                      Strona główna
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className={
-                      window.location.pathname.match("/invoices")
-                        ? "rounded p-3 font-medium"
-                        : "rounded p-3 transition-all hover:bg-gray-100 dark:hover:text-slate-900 hover:border hover:border-slate-300 hover:shadow-lg"
-                    }
-                    to="/invoices"
-                    onClick={refreshPage}
-                  >
-                    <span
-                      className={
-                        window.location.pathname.match("/invoices")
-                          ? "border-b-4 rounded pb-1 border-indigo-400 dark:border-white"
-                          : ""
-                      }
-                    >
-                      Faktury
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className={
-                      window.location.pathname.match("/projects")
-                        ? "rounded p-3 font-medium"
-                        : "rounded p-3 transition-all hover:bg-gray-100 dark:hover:text-slate-900 hover:border hover:border-slate-300 hover:shadow-lg"
-                    }
-                    to="/projects"
-                    onClick={refreshPage}
-                  >
-                    <span
-                      className={
-                        window.location.pathname.match("/projects")
-                          ? "border-b-4 rounded pb-1 border-indigo-400 dark:border-white"
-                          : ""
-                      }
-                    >
-                      Projekty
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className={
-                      window.location.pathname.match("/clients")
-                        ? "rounded p-3 font-medium"
-                        : "rounded p-3 transition-all hover:bg-gray-100 dark:hover:text-slate-900 hover:border hover:border-slate-300 hover:shadow-lg"
-                    }
-                    to="/clients"
-                    onClick={refreshPage}
-                  >
-                    <span
-                      className={
-                        window.location.pathname.match("/clients")
-                          ? "border-b-4 rounded pb-1 border-indigo-400 dark:border-white"
-                          : ""
-                      }
-                    >
-                      Klienci
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div className="m-auto w-1/5">
-              <div className="flex items-center justify-center xl:justify-end gap-10">
-                <FontAwesomeIcon icon="fa-solid fa-magnifying-glass"></FontAwesomeIcon>
-                <FontAwesomeIcon icon="fa-regular fa-bell" />
-                {user ? (
-                  <Button variant={"destructive"} onClick={onLogout}>
-                    Wyloguj się
-                  </Button>
-                ) : (
-                  <Link to={'/login'}><Button variant={"default"}>Zaloguj się</Button></Link>
-                )}
-              </div>
-            </div>
+        <Navbar className="dark:bg-black" fluid={true} rounded={true}>
+          <Navbar.Brand href="/">
+            <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+              Generator faktur
+            </span>
+          </Navbar.Brand>
+          <div className="flex md:order-2 gap-2">
+            {user ? (
+              <Dropdown
+                className="dark:bg-slate-800"
+                arrowIcon={false}
+                inline={true}
+                label={
+                  <Avatar
+                    alt="User settings"
+                    img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                    rounded={true}
+                  />
+                }
+              >
+                <Dropdown.Header>
+                  <span className="block text-sm">{user?.username}</span>
+                  <span className="block truncate text-sm font-medium">
+                    {user?.email}
+                  </span>
+                </Dropdown.Header>
+                <Dropdown.Item>Podsumowanie</Dropdown.Item>
+                <Dropdown.Item>Ustawienia</Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item
+                  className="dark:text-red-500 hover:dark:text-red-400"
+                  onClick={onLogout}
+                >
+                  Wyloguj się
+                </Dropdown.Item>
+              </Dropdown>
+            ) : (
+              <Link to={"signin"}>
+                <Button
+                  variant={"ghost"}
+                  className="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
+                >
+                  Utwórz konto
+                </Button>
+              </Link>
+            )}
+            <Navbar.Toggle />
           </div>
-        </nav>
-        <hr className="dark:border-slate-700" />
+          <Navbar.Collapse>
+            <Navbar.Link
+              href="/home"
+              active={window.location.pathname.match("/home") ? true : false}
+            >
+              Strona główna
+            </Navbar.Link>
+            <Navbar.Link
+              href="/invoices"
+              active={
+                window.location.pathname.match("/invoices") ? true : false
+              }
+            >
+              Faktury
+            </Navbar.Link>
+            <Navbar.Link
+              href="/clients"
+              active={window.location.pathname.match("/clients") ? true : false}
+            >
+              Klienci
+            </Navbar.Link>
+            <Navbar.Link
+              href="/projects"
+              active={
+                window.location.pathname.match("/projects") ? true : false
+              }
+            >
+              Projekty
+            </Navbar.Link>
+          </Navbar.Collapse>
+        </Navbar>
       </header>
       <Outlet />
     </div>

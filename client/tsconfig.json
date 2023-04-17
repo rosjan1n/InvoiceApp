@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "./build",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "src"
+  ]
+}

@@ -51,7 +51,7 @@ function InvoiceDetails() {
   moment.locale("pl");
 
   useEffect(() => {
-    if (!user) return navigate("/");
+    if (!user) return navigate("/login");
 
     if (isError) console.log(message);
 
@@ -95,26 +95,27 @@ function InvoiceDetails() {
   const handleDelete = (e) => {
     e.preventDefault();
 
-    if(!user)
-      return navigate('/login');
+    if (!user) return navigate("/login");
 
-    navigate('/');
+    navigate("/");
     dispatch(deleteInvoice(data._id))
       .then(() => {
         toast({
-          variant: 'success',
-          title: 'Usunięto fakturę!',
-          description: `Faktura #${(data._id.substring(data._id.length - 6)).toUpperCase()} została poprawnie usunięta`
-        })
+          variant: "success",
+          title: "Usunięto fakturę!",
+          description: `Faktura #${data._id
+            .substring(data._id.length - 6)
+            .toUpperCase()} została poprawnie usunięta`,
+        });
       })
       .catch(() => {
         toast({
-          variant: 'destructive',
+          variant: "destructive",
           title: "Wystąpił błąd!",
-          description: message
-        })
-      })
-  }
+          description: message,
+        });
+      });
+  };
 
   const handleNameChange = (e) => {
     const { value } = e.target;
@@ -511,7 +512,9 @@ function InvoiceDetails() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Usuń</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Usuń
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
