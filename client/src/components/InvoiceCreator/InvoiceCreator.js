@@ -32,7 +32,7 @@ function InvoiceCreator() {
       console.log(projectMessage);
 
     if(!user)
-      navigate('/login');
+      return navigate('/login');
 
     dispatch(getClients());
     dispatch(getProjects());
@@ -41,7 +41,7 @@ function InvoiceCreator() {
       dispatch(resetClients());
       dispatch(resetProjects());
     }
-  }, [user, clientIsError, clientMessage, navigate, dispatch])
+  }, [user, clientIsError, clientMessage, projectMessage, projestIsError, navigate, dispatch])
 
 
   function prevStep() {

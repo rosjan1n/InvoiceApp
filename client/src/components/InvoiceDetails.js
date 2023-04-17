@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
@@ -6,7 +6,6 @@ import "moment/locale/pl";
 
 /* Utils */
 import {
-  invoice_form,
   calculateBrutto,
   calculateTotal,
   calculateDiscount,
@@ -14,11 +13,16 @@ import {
 } from "../lib/utils";
 
 /* Actions */
-import { deleteInvoice, editInvoice } from "../actions/invoices";
+import {
+  getInvoices,
+  editInvoice,
+  deleteInvoice,
+  reset,
+} from "../reducers/features/invoices/invoiceSlice";
 
 /* UI Components */
-import { useToast } from './ui/use-toast.tsx';
-import { ToastAction } from './ui/toast.tsx';
+import { useToast } from "./ui/use-toast.tsx";
+import { ToastAction } from "./ui/toast.tsx";
 import { Button } from "./ui/button.tsx";
 import Loader from "./ui/Loader";
 import {
@@ -35,19 +39,28 @@ import {
 
 function InvoiceDetails() {
   const { id } = useParams();
-  const [data, setData] = useState(invoice_form);
-  const invoice = useSelector((state) =>
-    state.invoices.find((i) => i._id === id)
+  const { user } = useSelector((state) => state.auth);
+  const { invoices, isLoading, isError, message } = useSelector(
+    (state) => state.invoice
   );
-  
+  const data = invoices.find((i) => i._id === id);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
   moment.locale("pl");
 
   useEffect(() => {
-    if (invoice) setData(invoice);
-  }, [invoice]);
+    if (!user) return navigate("/");
+
+    if (isError) console.log(message);
+
+    dispatch(getInvoices());
+
+    return () => {
+      dispatch(reset());
+    };
+  }, [navigate, user, dispatch, isError, message]);
 
   const vatOptions = [
     { value: 5, text: "5%" },
@@ -58,91 +71,89 @@ function InvoiceDetails() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-      data.editedAt = new Date().toJSON();
-      data.details.total = calculateDiscount(data);
-  
-      dispatch(editInvoice(id, data))
-        .then(() => {
-          toast({
-            variant: "success",
-            title: "Edytowano fakturę!",
-            description: `Faktura została edytowana i zapisana.`,
-          })
-          navigate(-1);
-        })
-        .catch(() => {
-          toast({
-            variant: "destructive",
-            title: 'Wystąpił błąd!',
-            description: `Wystąpił błąd podczas edycji faktury. Upewnij się czy wszystkie pola są uzupełnione.`,
-          });
+    data.editedAt = new Date().toJSON();
+    data.details.total = calculateDiscount(data);
+
+    dispatch(editInvoice(id, data))
+      .then(() => {
+        toast({
+          variant: "success",
+          title: "Edytowano fakturę!",
+          description: `Faktura została edytowana i zapisana.`,
         });
+        navigate(-1);
+      })
+      .catch(() => {
+        toast({
+          variant: "destructive",
+          title: "Wystąpił błąd!",
+          description: `Wystąpił błąd podczas edycji faktury. Upewnij się czy wszystkie pola są uzupełnione.`,
+        });
+      });
   };
+
+  const handleDelete = (e) => {
+    e.preventDefault();
+
+    if(!user)
+      return navigate('/login');
+
+    navigate('/');
+    dispatch(deleteInvoice(data._id))
+      .then(() => {
+        toast({
+          variant: 'success',
+          title: 'Usunięto fakturę!',
+          description: `Faktura #${(data._id.substring(data._id.length - 6)).toUpperCase()} została poprawnie usunięta`
+        })
+      })
+      .catch(() => {
+        toast({
+          variant: 'destructive',
+          title: "Wystąpił błąd!",
+          description: message
+        })
+      })
+  }
 
   const handleNameChange = (e) => {
     const { value } = e.target;
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      client: {
-        ...prevInvoice["client"],
-        name: value,
-      },
-    }));
+    data["client"].name = value;
   };
 
   const handleProjectChange = (e) => {
     const { name, value } = e.target;
     const updatedProject = { ...data["project"], [name]: value };
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      project: updatedProject,
-    }));
+    data["project"] = updatedProject;
   };
 
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
     const updatedAddress = { ...data["client"].address, [name]: value };
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      client: {
-        ...prevInvoice["client"],
-        address: updatedAddress,
-      },
-    }));
+    data["client"].address = updatedAddress;
   };
 
   const handlePrivateChange = (e) => {
     const { name, value } = e.target;
     const updatedPrivate = { ...data["client"].private, [name]: value };
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      client: {
-        ...prevInvoice["client"],
-        private: updatedPrivate,
-      },
-    }));
+    data["client"].private = updatedPrivate;
   };
 
   const handleProductChange = (event, index) => {
     const { name, value } = event.target;
     const newProducts = [...data.products];
     newProducts[index] = { ...newProducts[index], [name]: value };
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      products: newProducts,
-    }));
+    data["products"] = newProducts;
   };
 
   const handleDetailsChange = (e) => {
     const { name, value } = e.target;
     const newDetails = { ...data.details, [name]: value };
-    setData((prevInvoice) => ({
-      ...prevInvoice,
-      details: newDetails,
-    }));
+    data["details"] = newDetails;
   };
 
-  if (!invoice) return <Loader title={"Trwa wczytywanie szczegółów..."} />;
+  if (isLoading) return <Loader title={"Trwa wczytywanie szczegółów..."} />;
+
   return (
     <div className="flex gap-24 flex-col mb-6">
       <div>
@@ -152,7 +163,7 @@ function InvoiceDetails() {
               Szczegóły faktury{" "}
               <span className="italic bg-indigo-400 p-1 rounded-lg text-white decoration-indigo-400 uppercase select-all">
                 <span className="font-extrabold">#</span>
-                {invoice._id.substring(invoice._id.length - 6)}
+                {data?._id.substring(data?._id.length - 6)}
               </span>
             </h2>
             <small className="text-sm font-medium leading-none">
@@ -160,7 +171,7 @@ function InvoiceDetails() {
             </small>
           </header>
           <small className="font-medium">
-            {invoice.__v > 0
+            {data?.__v > 0
               ? "Ostatnio edytowano: " + moment(data.editedAt).fromNow()
               : ""}
           </small>
@@ -432,10 +443,7 @@ function InvoiceDetails() {
                         type="number"
                         name="total_price_brutto"
                         className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={
-                          (product.total_price_brutto =
-                            calculateBrutto(product).toFixed(2))
-                        }
+                        value={calculateBrutto(product).toFixed(2)}
                         disabled
                       />
                     </td>
@@ -444,9 +452,7 @@ function InvoiceDetails() {
                         type="number"
                         name="price_vat"
                         className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={
-                          (product.vat_price = calculateVat(product).toFixed(2))
-                        }
+                        value={calculateVat(product).toFixed(2)}
                         disabled
                       />
                     </td>
@@ -457,7 +463,8 @@ function InvoiceDetails() {
           </div>
           <div className="flex flex-col justify-end items-end mb-4">
             <div className="font-semibold text-2xl">
-              Łączna kwota: $<span>{calculateTotal(data).toFixed(2)}</span>
+              Łączna kwota: $
+              <span>{calculateTotal(data).total.toFixed(2)}</span>
             </div>
             {data.details.discount > 0 ? (
               <div className="font-semibold text-2xl">
@@ -504,31 +511,7 @@ function InvoiceDetails() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      dispatch(deleteInvoice(data._id))
-                        .then(() => {
-                          toast({
-                            variant: "success",
-                            title: "Usunięto fakturę",
-                            description: `Faktura #${(data._id.substring(data._id.length - 6)).toUpperCase()} została poprawnie usunięta.`,
-                            action: (
-                              <ToastAction altText="Goto schedule to undo">Cofnij</ToastAction> /* TODO undo delete action */
-                            ),
-                          })
-                          navigate(-1);
-                        })
-                        .catch(() => {
-                          toast({
-                            variant: "destructive",
-                            title: "Wystąpił błąd!",
-                            description: "Wystąpił błąd podczas usuwania faktury. Spróbuj odswieżyć stronę."
-                          })
-                        });
-                    }}
-                  >
-                    Usuń
-                  </AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete}>Usuń</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

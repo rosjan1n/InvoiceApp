@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -15,10 +15,16 @@ import { invoice_form } from "../../lib/utils";
 import BuildMap from "../ui/MapCreator";
 
 function ClientCreator() {
+  const { user } = useSelector((state) => state.auth);
   const [client, setClient] = useState(invoice_form.client);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if(!user)
+      return navigate('/login');
+  }, [user, navigate]);
 
   const handleClientChange = (e) => {
     const { name, value } = e.target;

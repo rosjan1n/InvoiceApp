@@ -35,6 +35,7 @@ export const getClients = createAsyncThunk('clients/getAll', async (_, thunkAPI)
           error.response.data.message) ||
         error.message ||
         error.toString();
+        console.log(message);
       return thunkAPI.rejectWithValue(message);
   }
 });
@@ -61,12 +62,9 @@ export const clientSlice = createSlice({
         state.message = action.payload
       })
       .addCase(getClients.pending, (state) => {
-        console.log("State:", state)
         state.isLoading = true
       })
       .addCase(getClients.fulfilled, (state, action) => {
-        console.log("State:", state)
-        console.log("action:", action)
         state.isLoading = false
         state.isSuccess = true
         state.clients = action.payload

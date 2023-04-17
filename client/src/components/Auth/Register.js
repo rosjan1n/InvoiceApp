@@ -33,19 +33,20 @@ function Register() {
         title: "Wystąpił błąd",
         description: message,
       });
-    if (isSuccess || user) {
+    if (isSuccess) {
       navigate("/");
       toast({
-        variant: "success",
-        title: "Stworzono konto!",
-        description: `Witamy ${username} w serwisie InvoiceApp.`,
+        variant: 'success',
+        title: 'Stworzono konto',
+        description: `Pomyślnie stworzno konto ${user.username}`
       });
-      console.log(user);
-      console.log(localStorage.getItem('user'));
     }
 
+    if(user)
+      navigate('/');
+
     dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+  }, [user, isError, isSuccess, message, navigate, dispatch, toast]);
 
   const onChange = (e) => {
     const { name, value } = e.target;

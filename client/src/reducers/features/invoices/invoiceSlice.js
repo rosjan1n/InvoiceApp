@@ -24,7 +24,7 @@ export const createInvoice = createAsyncThunk('invoices/create', async (invoiceD
   }
 });
 
-export const editInvoice = createAsyncThunk('invoices/create', async (invoiceData, thunkAPI) => {
+export const editInvoice = createAsyncThunk('invoices/edit', async (invoiceData, thunkAPI) => {
   try {
     const token = thunkAPI.getState().auth.user.token;
     return await invoiceService.editInvoice(invoiceData, token);

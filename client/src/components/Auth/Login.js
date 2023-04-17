@@ -28,17 +28,25 @@ function Login() {
     if (isError)
       toast({
         variant: "destructive",
-        title: "Wystąpił błąd",
+        title: "Wystąpił błąd!",
         description: message,
       });
-    if (isSuccess || user) {
+    if (isSuccess) {
       navigate("/");
-      console.log(user);
-      console.log(localStorage.getItem('user'));
+      toast({
+        variant: 'success',
+        title: 'Zalogowano pomyślnie',
+        description: `Pomyślnie zalogowano na konto ${user.username}`
+      });
     }
 
-    dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+    if(user)
+      navigate('/')
+
+    return () => {
+      dispatch(reset());
+    }
+  }, [user, isError, isSuccess, message, navigate, dispatch, toast]);
 
   const onChange = (e) => {
     const { name, value } = e.target;

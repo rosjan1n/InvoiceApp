@@ -35,7 +35,7 @@ function ProjectCreator() {
       console.log(message)
 
     if(!user)
-      navigate('/login');
+      return navigate('/login');
 
     dispatch(getClients());
 

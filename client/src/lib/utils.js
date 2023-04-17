@@ -14,10 +14,7 @@ export const calculateVat = (product) => {
 };
 
 export const calculateTotal = (data) => {
-  let total = 0;
-  data.products.map((product) => {
-    return (total += calculateBrutto(product));
-  });
+  const total = data.products.reduce((acc, product) => acc + calculateBrutto(product), 0);
 
   return { ...data.details.total, total };
 };

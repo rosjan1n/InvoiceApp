@@ -37,7 +37,7 @@ const updateInvoice = asyncHandler(async (req, res) => {
 
   if (invoice.user.toString() !== req.user.id) {
     res.status(401)
-    throw new Error('User not authorized')
+    throw new Error('Brak autoryzacji')
   }
 
   const updatedInvoice = await Invoice.findByIdAndUpdate(req.params.id, req.body, {
@@ -48,25 +48,30 @@ const updateInvoice = asyncHandler(async (req, res) => {
 })
 
 const deleteInvoice = asyncHandler(async (req, res) => {
-  const invoice = await Invoice.findById(req.params.id)
+  const invoice = await Invoice.findOne({ _id: req.params.id })
 
   if (!invoice) {
     res.status(400)
-    throw new Error('Nieznaleziono faktury')
+    throw new Error('Nie znaleziono faktury')
   }
 
   if (!req.user) {
     res.status(401)
-    throw new Error('Nieznaleziono użytkownika')
+    throw new Error('Nie znaleziono użytkownika')
   }
+
   if (invoice.user.toString() !== req.user.id) {
     res.status(401)
-    throw new Error('User not authorized')
+    throw new Error('Brak autoryzacji')
   }
 
-  await invoice.remove()
-
-  res.status(200).json({ id: req.params.id })
+  try {
+    await Invoice.deleteOne({ _id: req.params.id })
+    res.status(200).json({ id: req.params.id })
+  } catch (error) {
+    res.status(500)
+    throw new Error('Błąd podczas usuwania faktury')
+  }
 })
 
 module.exports = {

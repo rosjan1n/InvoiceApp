@@ -6,9 +6,18 @@ import { Link, useNavigate } from "react-router-dom";
 import moment from "moment";
 
 /* Actions */
-import { getInvoices, reset as resetInvoices } from "../reducers/features/invoices/invoiceSlice";
-import { getClients, reset as resetClients } from "../reducers/features/clients/clientSlice";
-import { getProjects, reset as resetProjects } from "../reducers/features/projects/projectSlice";
+import {
+  getInvoices,
+  reset as resetInvoices,
+} from "../reducers/features/invoices/invoiceSlice";
+import {
+  getClients,
+  reset as resetClients,
+} from "../reducers/features/clients/clientSlice";
+import {
+  getProjects,
+  reset as resetProjects,
+} from "../reducers/features/projects/projectSlice";
 
 /* Utils */
 import { calculateDiscount } from "../lib/utils";
@@ -32,21 +41,32 @@ function Home() {
   const invoiceState = useSelector((state) => state.invoice);
   const clientState = useSelector((state) => state.client);
   const projectState = useSelector((state) => state.project);
-  
-  const { invoices, isLoading: invoiceIsLoading, isError: invoiceIsError, message: invoiceMessage } = invoiceState;
-  const { clients, isLoading: clientIsLoading, isError: clientIsError, message: clientMessage } = clientState;
-  const { projects, isLoading: projectIsLoading, isError: projestIsError, message: projectMessage } = projectState;
+
+  const {
+    invoices,
+    isLoading: invoiceIsLoading,
+    isError: invoiceIsError,
+    message: invoiceMessage,
+  } = invoiceState;
+  const {
+    clients,
+    isLoading: clientIsLoading,
+    isError: clientIsError,
+    message: clientMessage,
+  } = clientState;
+  const {
+    projects,
+    isLoading: projectIsLoading,
+    isError: projestIsError,
+    message: projectMessage,
+  } = projectState;
 
   useEffect(() => {
-    if(invoiceIsError)
-      console.log(invoiceMessage);
-    if(clientIsError)
-      console.log(clientMessage);
-    if(projestIsError)
-      console.log(projectMessage);
+    if (!user) return navigate("/login");
 
-    if(!user)
-      navigate('/login');
+    if (invoiceIsError) console.log(invoiceMessage);
+    if (clientIsError) console.log(clientMessage);
+    if (projestIsError) console.log(projectMessage);
 
     dispatch(getInvoices());
     dispatch(getClients());
@@ -56,11 +76,18 @@ function Home() {
       dispatch(resetInvoices());
       dispatch(resetClients());
       dispatch(resetProjects());
-    }
-  }, [user, invoiceIsError, invoiceMessage, clientIsError, clientMessage, navigate, dispatch])
-
-  console.log(invoices);
-  console.log(clients);
+    };
+  }, [
+    user,
+    invoiceIsError,
+    invoiceMessage,
+    clientIsError,
+    clientMessage,
+    projestIsError,
+    projectMessage,
+    navigate,
+    dispatch,
+  ]);
 
   const clientName = (id) => {
     for (let index = 0; index < clients.length; index++)
@@ -171,7 +198,7 @@ function Home() {
           <div className="text-xl font-bold">Ostatnie Transakcje</div>
           <div className="recent-body">
             <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
-              {(invoiceIsLoading || invoiceIsError || !invoices.length) ? (
+              {invoiceIsLoading || invoiceIsError || !invoices.length ? (
                 <Start
                   title={"Brak transakcji"}
                   subtitle={"Rozpocznij swoją przygodę już teraz!"}
@@ -238,7 +265,7 @@ function Home() {
           <div className="text-xl font-bold">Ostatnie Projekty</div>
           <div className="recent-body">
             <div className="flex flex-col h-[21rem] overflow-auto border rounded border-gray-200 dark:border-slate-700 shadow-lg">
-              {(projectIsLoading || projestIsError || !projects.length) ? (
+              {projectIsLoading || projestIsError || !projects.length ? (
                 <Start
                   title={"Brak projektów"}
                   subtitle={"Rozpocznij swoją przygodę już teraz!"}
