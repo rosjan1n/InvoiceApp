@@ -19,15 +19,10 @@ function Navigation() {
     navigate("/signin");
   };
 
-  const handleTheme = (value) => {
-    const html = document.documentElement;
-    {value ? html.setAttribute('data-theme', 'dark') : html.setAttribute('data-theme', 'light')};
-  }
-
   return (
     <div>
       <header>
-        <Navbar className="dark:bg-black" fluid={true} rounded={true}>
+        <Navbar className="dark:bg-black" fluid rounded>
           <Navbar.Brand href="/">
             <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
               Generator faktur
@@ -44,6 +39,7 @@ function Navigation() {
                     alt="User settings"
                     img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
                     rounded={true}
+                    bordered
                   />
                 }
               >
@@ -54,10 +50,10 @@ function Navigation() {
                   </span>
                 </Dropdown.Header>
                 <Dropdown.Item>Podsumowanie</Dropdown.Item>
-                <Dropdown.Item>Ustawienia</Dropdown.Item>
+                <Link to={'/settings'}><Dropdown.Item>Ustawienia</Dropdown.Item></Link>
                 <Dropdown.Divider />
                 <Dropdown.Item
-                  className="dark:text-red-500 hover:dark:text-red-400"
+                  className="text-red-500 hover:text-red-400 dark:text-red-500 hover:dark:text-red-400"
                   onClick={onLogout}
                 >
                   Wyloguj się
@@ -107,6 +103,7 @@ function Navigation() {
           </Navbar.Collapse>
         </Navbar>
       </header>
+      <hr className="h-px bg-gray-200 border-0 dark:bg-gray-700"/>
       <Outlet />
     </div>
   );

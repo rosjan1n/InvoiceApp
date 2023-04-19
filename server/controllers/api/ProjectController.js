@@ -10,8 +10,6 @@ const getProjects = asyncHandler(async (req, res) => {
 })
 
 const createProject = asyncHandler(async (req, res) => {
-  console.log(req);
-
   const project = await Project.create({
     name: req.body.name,
     client_id: req.body.client_id,

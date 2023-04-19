@@ -17,10 +17,12 @@ import {
   getInvoices,
   editInvoice,
   deleteInvoice,
-  reset,
+  reset as resetInvoice,
 } from "../reducers/features/invoices/invoiceSlice";
+import { getClients, reset as resetClient } from "../reducers/features/clients/clientSlice.js";
 
 /* UI Components */
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useToast } from "./ui/use-toast.tsx";
 import { ToastAction } from "./ui/toast.tsx";
 import { Button } from "./ui/button.tsx";
@@ -40,10 +42,14 @@ import {
 function InvoiceDetails() {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
-  const { invoices, isLoading, isError, message } = useSelector(
+  const { invoices, isLoadingInvoice, isErrorInvoice, messageInvoice } = useSelector(
     (state) => state.invoice
   );
-  const data = invoices.find((i) => i._id === id);
+  const { clients, isLoadingClient, isErrorClient, messageClient } = useSelector(
+    (state) => state.client
+  );
+  const invoice = invoices.find((i) => i._id === id);
+  const client = clients.find((c) => c._id === invoice?.details.client_id);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -53,14 +59,17 @@ function InvoiceDetails() {
   useEffect(() => {
     if (!user) return navigate("/login");
 
-    if (isError) console.log(message);
+    if (isErrorInvoice) console.log(messageInvoice);
+    if (isErrorClient) console.log(messageClient);
 
     dispatch(getInvoices());
+    dispatch(getClients());
 
     return () => {
-      dispatch(reset());
+      dispatch(resetInvoice());
+      dispatch(resetInvoice());
     };
-  }, [navigate, user, dispatch, isError, message]);
+  }, [navigate, user, dispatch, isErrorInvoice, isErrorClient, messageInvoice, messageClient]);
 
   const vatOptions = [
     { value: 5, text: "5%" },
@@ -71,10 +80,10 @@ function InvoiceDetails() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    data.editedAt = new Date().toJSON();
-    data.details.total = calculateDiscount(data);
+    invoice.editedAt = new Date().toJSON();
+    invoice.details.total = calculateDiscount(invoice);
 
-    dispatch(editInvoice(id, data))
+    dispatch(editInvoice(id, invoice))
       .then(() => {
         toast({
           variant: "success",
@@ -98,13 +107,13 @@ function InvoiceDetails() {
     if (!user) return navigate("/login");
 
     navigate("/");
-    dispatch(deleteInvoice(data._id))
+    dispatch(deleteInvoice(invoice._id))
       .then(() => {
         toast({
           variant: "success",
           title: "Usunięto fakturę!",
-          description: `Faktura #${data._id
-            .substring(data._id.length - 6)
+          description: `Faktura #${invoice._id
+            .substring(invoice._id.length - 6)
             .toUpperCase()} została poprawnie usunięta`,
         });
       })
@@ -112,414 +121,182 @@ function InvoiceDetails() {
         toast({
           variant: "destructive",
           title: "Wystąpił błąd!",
-          description: message,
+          description: messageInvoice,
         });
       });
   };
 
   const handleNameChange = (e) => {
     const { value } = e.target;
-    data["client"].name = value;
+    invoice["client"].name = value;
   };
 
   const handleProjectChange = (e) => {
     const { name, value } = e.target;
-    const updatedProject = { ...data["project"], [name]: value };
-    data["project"] = updatedProject;
+    const updatedProject = { ...invoice["project"], [name]: value };
+    invoice["project"] = updatedProject;
   };
 
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
-    const updatedAddress = { ...data["client"].address, [name]: value };
-    data["client"].address = updatedAddress;
+    const updatedAddress = { ...invoice["client"].address, [name]: value };
+    invoice["client"].address = updatedAddress;
   };
 
   const handlePrivateChange = (e) => {
     const { name, value } = e.target;
-    const updatedPrivate = { ...data["client"].private, [name]: value };
-    data["client"].private = updatedPrivate;
+    const updatedPrivate = { ...invoice["client"].private, [name]: value };
+    invoice["client"].private = updatedPrivate;
   };
 
   const handleProductChange = (event, index) => {
     const { name, value } = event.target;
-    const newProducts = [...data.products];
+    const newProducts = [...invoice.products];
     newProducts[index] = { ...newProducts[index], [name]: value };
-    data["products"] = newProducts;
+    invoice["products"] = newProducts;
   };
 
   const handleDetailsChange = (e) => {
     const { name, value } = e.target;
-    const newDetails = { ...data.details, [name]: value };
-    data["details"] = newDetails;
+    const newDetails = { ...invoice.details, [name]: value };
+    invoice["details"] = newDetails;
   };
 
-  if (isLoading) return <Loader title={"Trwa wczytywanie szczegółów..."} />;
+  const totalProduct = () => {
+    let total = 0;
+    for (let index = 0; index < invoice?.products.length; index++) {
+      total += invoice.products[index].total_price_brutto;   
+    }
+    return total;
+  }
+
+  if (isLoadingInvoice || isLoadingClient) return <Loader title={"Trwa wczytywanie szczegółów..."} />;
 
   return (
-    <div className="flex gap-24 flex-col mb-6">
-      <div>
-        <div className="flex justify-between mt-4 mb-10 w-11/12 m-auto">
-          <header className="container-header">
-            <h2 className="text-2xl font-bold">
-              Szczegóły faktury{" "}
-              <span className="italic bg-indigo-400 p-1 rounded-lg text-white decoration-indigo-400 uppercase select-all">
-                <span className="font-extrabold">#</span>
-                {data?._id.substring(data?._id.length - 6)}
-              </span>
-            </h2>
-            <small className="text-sm font-medium leading-none">
-              Zobaczysz tutaj szczegóły faktury
-            </small>
-          </header>
-          <small className="font-medium">
-            {data?.__v > 0
-              ? "Ostatnio edytowano: " + moment(data.editedAt).fromNow()
-              : ""}
-          </small>
+    <div className="w-[90%] mt-8 m-auto">
+      <div className="flex flex-col lg:flex-row xl:flex-row gap-5 xl:gap-0 justify-between">
+        <div className="flex gap-5 font-light">
+          <div>
+            <span className="font-semibold">Data wystawienia:</span> {moment(invoice?.details.date_issue).format('LL')}
+          </div> 
+          <div>
+            <span className="font-semibold">Data sprzedaży:</span> {moment(invoice?.details.date_sale).format('LL')}
+          </div>
+          <div className="uppercase">
+            <span className="font-semibold normal-case">Numer faktury: </span>{invoice?._id.substring(invoice?._id.length - 6)}
+          </div>
         </div>
-        <form className="flex flex-col w-[90%] m-auto">
-          <div className="grid md:grid-cols-3 md:gap-6">
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="date"
-                name="date_issue"
-                id="date_issue"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={moment(data["details"].date_issue).format("YYYY-MM-DD")}
-                onChange={(e) => handleDetailsChange(e)}
-                required
-              />
-              <label
-                htmlFor="date_issue"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Data wystawienia
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="date"
-                name="date_sale"
-                id="date_sale"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={moment(data["details"].date_sale).format("YYYY-MM-DD")}
-                onChange={(e) => handleDetailsChange(e)}
-                required
-              />
-              <label
-                htmlFor="date_sale"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Data sprzedaży
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="text"
-                name="status"
-                id="status"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={data.details.status === 1 ? "Zapłacone" : "Oczekuje"}
-                onChange={(e) => handleDetailsChange(e)}
-                disabled
-              />
-              <label
-                htmlFor="status"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Status faktury
-              </label>
-            </div>
+        <div className="flex justify-center lg:justify-end xl:justify-end">
+            {invoice?.__v > 0 ? (
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
+                <svg aria-hidden="true" className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"></path></svg>
+                Edytowano {moment(invoice?.editedAt).fromNow()}
+              </span>
+            ) : []}
+        </div>
+      </div>
+      <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+      <div className="flex flex-col xl:grid xl:grid-cols-2 xl:justify-between">
+        <div className="flex flex-col gap-3">
+          <h3 className="font-semibold">Nadawca</h3>
+          <div className="grid grid-cols-2 w-full">
+            <label>Nazwa odbiorcy</label>
+            <div className="text-sm select-text">{user?.username}</div>
+            <label>Email</label>
+            <div className="text-sm select-text">{user?.email}</div>
+            <label>Adres</label>
+            <div className="text-sm select-text">{user?.address?.street}</div>
+            <label>Miasto</label>
+            <div className="text-sm select-text">{user?.address?.city}</div>
+            <label>Kod pocztowy</label>
+            <div className="text-sm select-text">{user?.address?.postal_code}</div>
+            <label>Numer telefonu</label>
+            <div className="text-sm select-text">{user?.private?.phone_number}</div>
+            <label>Rachunek bankowy</label>
+            <div className="text-sm select-text">{user?.private?.bank_account}</div>
+            <label>NIP</label>
+            <div className="text-sm select-text">{user?.private?.nip}</div>
           </div>
-          <div className="relative z-0 w-full mb-6 group">
-            <input
-              type="text"
-              name="name"
-              id="name"
-              className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-              value={data.client.name}
-              onChange={(e) => handleNameChange(e)}
-              required
-            />
-            <label
-              htmlFor="name"
-              className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              Nazwa klienta
-            </label>
+        </div>
+        <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700 xl:hidden"/>
+        <div className="flex flex-col gap-3">
+          <h3 className="font-semibold">Odbiorca</h3>
+          <div className="grid grid-cols-2 w-full">
+            <label>Nazwa klienta</label>
+            <div className="text-sm select-text">{client?.name}</div>
+            <label>Email</label>
+            <div className="text-sm select-text">{client?.email}</div>
+            <label>Adres</label>
+            <div className="text-sm select-text">{client?.address.street}</div>
+            <label>Miasto</label>
+            <div className="text-sm select-text">{client?.address.city}</div>
+            <label>Kod pocztowy</label>
+            <div className="text-sm select-text">{client?.address.postal_code}</div>
+            <label>Numer telefonu</label>
+            <div className="text-sm select-text">{client?.private.phone_number}</div>
+            <label>Rachunek bankowy</label>
+            <div className="text-sm select-text">{client?.private.bank_account}</div>
+            <label>NIP</label>
+            <div className="text-sm select-text">{client?.private.nip}</div>
           </div>
-          <div className="relative z-0 w-full mb-6 group">
-            <input
-              type="text"
-              name="bank_account"
-              id="bank_account"
-              className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-              value={data.client.private.bank_account}
-              onChange={(e) => handlePrivateChange(e)}
-              required
-            />
-            <label
-              htmlFor="bank_account"
-              className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              Rachunek bankowy
-            </label>
-          </div>
-          <div className="relative z-0 w-full mb-6 group">
-            <input
-              type="number"
-              name="nip"
-              id="nip"
-              className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-              value={data.client.private.nip}
-              onChange={(e) => handlePrivateChange(e)}
-              required
-            />
-            <label
-              htmlFor="nip"
-              className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              NIP
-            </label>
-          </div>
-          <div className="grid md:grid-cols-3 md:gap-6">
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="text"
-                name="street"
-                id="street"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={data.client.address.street}
-                onChange={(e) => handleAddressChange(e)}
-                required
-              />
-              <label
-                htmlFor="street"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Ulica
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="text"
-                name="city"
-                id="city"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={data.client.address.city}
-                onChange={(e) => handleAddressChange(e)}
-                required
-              />
-              <label
-                htmlFor="city"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Miasto
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-6 group">
-              <input
-                type="tel"
-                pattern="[0-9]{3}[0-9]{3}[0-9]{3}"
-                name="phone_number"
-                id="phone_number"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                defaultValue={data.client.private.phone_number}
-                onChange={(e) => handlePrivateChange(e)}
-                required
-              />
-              <label
-                htmlFor="phone_number"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Numer telefonu
-              </label>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 md:gap-6">
-            <div className="relative z-0 w-full mb-6 group">
-              {/* TODO - Select with available user projects*/}
-              <input
-                type="text"
-                name="name"
-                id="name"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={data.project.name}
-                onChange={(e) => handleProjectChange(e)}
-                required
-              />
-              <label
-                htmlFor="name"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Podpięty projekt
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-6 group">
-              {/* TODO - Select with available categories*/}
-              <input
-                type="text"
-                name="category"
-                id="category"
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-600 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
-                value={data.project.category}
-                onChange={(e) => handleProjectChange(e)}
-                required
-              />
-              <label
-                htmlFor="category"
-                className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-              >
-                Kategoria projektu
-              </label>
-            </div>
-          </div>
-          <h1 className="text-center font-bold text-2xl">Produkty</h1>
-          <div className="my-10 overflow-auto">
-            <table className="text-center w-[1700px] m-auto border-separate border-spacing-y-2">
-              <thead>
-                <tr>
-                  <th className="font-extrabold">#</th>
-                  <th>Nazwa usługi/produktu</th>
-                  <th>Ilość</th>
-                  <th>Cena jednostkowa</th>
-                  <th>VAT</th>
-                  <th>Wartość brutto</th>
-                  <th>Kwota VAT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.products.map((product, i) => (
-                  <tr key={i}>
-                    <td className="w-[5%]">
-                      <label>{i + 1}</label>
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        name="name"
-                        className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={product.name}
-                        onChange={(e) => handleProductChange(e, i)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="quantity"
-                        className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={product.quantity}
-                        onChange={(e) => handleProductChange(e, i)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="price"
-                        min={0}
-                        max={99999999}
-                        maxLength={10}
-                        className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={product.price}
-                        onChange={(e) => handleProductChange(e, i)}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        value={product.vat}
-                        onChange={(e) => handleProductChange(e, i)}
-                        id="vat"
-                        name="vat"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      >
-                        {vatOptions.map((vat, i) => (
-                          <option key={i} value={vat.value}>
-                            {vat.text}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="total_price_brutto"
-                        className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={calculateBrutto(product).toFixed(2)}
-                        disabled
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="price_vat"
-                        className="bg-gray-50 border m-auto border-gray-300 text-gray-900 text-sm rounded-lg disabled:bg-gray-200/70 focus:ring-blue-500 focus:border-blue-500 block w-3/4 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        value={calculateVat(product).toFixed(2)}
-                        disabled
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-col justify-end items-end mb-4">
-            <div className="font-semibold text-2xl">
-              Łączna kwota: $
-              <span>{calculateTotal(data).total.toFixed(2)}</span>
-            </div>
-            {data.details.discount > 0 ? (
-              <div className="font-semibold text-2xl">
-                Łączna kwota z rabatem: $
-                <span>{calculateDiscount(data).toFixed(2)}</span>
-              </div>
-            ) : (
-              ""
-            )}
-            <div className="font-semibold text-2xl">
-              Rabat: {data.details.discount}%
-            </div>
-          </div>
-          <div className="flex justify-end gap-5">
-            <Button
-              type="submit"
-              id="edit_invoice"
-              className="bg-green-500 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-700 dark:text-white"
-              onClick={(e) => handleSubmit(e)}
-            >
-              Pobierz fakturę
-            </Button>
-            <Button
-              type="submit"
-              id="edit_invoice"
-              className="bg-indigo-500 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-700 dark:text-white"
-              onClick={(e) => handleSubmit(e)}
-            >
-              Edytuj
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Usuń fakturę</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Czy jesteś pewny że chcesz usunąć fakturę?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Ta akcja jest nie do cofnięcia. Spowoduje to permanentne
-                    usunięcie faktury z naszy serwerów.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Usuń
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </form>
+        </div>
+      </div>
+      <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+      <div className="relative overflow-x-auto mt-10">
+        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" className="px-6 py-3 rounded-l-lg">
+                Nazwa produktu/usługi
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Ilość
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Cena brutto
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Cena netto
+              </th>
+              <th scope="col" className="px-6 py-3 rounded-r-lg">
+                VAT
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoice?.products.map((product, index) => (
+              <tr key={index} className="bg-white dark:bg-gray-800">
+                <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                  {product.name}
+                </th>
+                <td className="px-6 py-4">
+                  {product.quantity}
+                </td>
+                <td className="px-6 py-4">
+                  {product.price_vat}
+                </td>
+                <td className="px-6 py-4">
+                  {product.price} PLN
+                </td>
+                <td className="px-6 py-4">
+                  {product.vat}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+              <tr className="font-semibold text-gray-900 dark:text-white">
+                  <th scope="row" className="px-6 py-3 text-base">Łącznie</th>
+                  <td className="px-6 py-3">{invoice?.products.length}</td>
+                  <td className="px-6 py-3">{totalProduct().toFixed(2)} PLN</td>
+              </tr>
+          </tfoot>
+        </table>
+      </div>
+      <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+      <div className="flex gap-5">
+        <Button variant={'outline'}><FontAwesomeIcon className="pr-2" icon="fa-solid fa-download" />Pobierz fakturę</Button>
+        <Button variant={'destructive'}><FontAwesomeIcon className="pr-2" icon="fa-solid fa-trash" />Usuń fakturę</Button>
       </div>
     </div>
   );

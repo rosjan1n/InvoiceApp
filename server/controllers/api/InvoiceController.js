@@ -12,8 +12,6 @@ const getInvoices = asyncHandler(async (req, res) => {
 const createInvoice = asyncHandler(async (req, res) => {
   const invoice = await Invoice.create({
     details: req.body.details,
-    client: req.body.client,
-    project: req.body.project,
     products: req.body.products,
     editedAt: req.body.editedAt,
     user: req.user.id

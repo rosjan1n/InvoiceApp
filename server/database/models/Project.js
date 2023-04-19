@@ -11,8 +11,9 @@ const ProjectSchema = new mongoose.Schema({
     required: [true, 'Wprowadź nazwę projektu']
   },
   client_id: {
-    type: String,
-    required: false
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref: 'Client'
   },
   category: {
     type: String,

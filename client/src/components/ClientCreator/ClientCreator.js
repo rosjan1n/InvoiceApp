@@ -4,35 +4,70 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { createClient } from '../../reducers/features/clients/clientSlice';
+import {
+  createClient,
+  reset,
+} from "../../reducers/features/clients/clientSlice";
 
 /* Components */
 import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 
 /* Utils */
-import { invoice_form } from "../../lib/utils";
 import BuildMap from "../ui/MapCreator";
 
 function ClientCreator() {
   const { user } = useSelector((state) => state.auth);
-  const [client, setClient] = useState(invoice_form.client);
+  const { isSuccess, isError, message } = useSelector((state) => state.client);
+  const [client, setClient] = useState({
+    name: "",
+    email: "",
+    address: {
+      street: "",
+      city: "",
+      postal_code: "",
+    },
+    private: {
+      phone_number: "",
+      bank_account: "",
+      nip: "",
+    },
+  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
 
   useEffect(() => {
-    if(!user)
-      return navigate('/login');
-  }, [user, navigate]);
+    if (!user) return navigate("/login");
+
+    if (isError)
+      toast({
+        variant: "destructive",
+        title: "Wystąpił błąd!",
+        description: message,
+      });
+
+    if (isSuccess && client.name) {
+      navigate("/");
+      toast({
+        variant: "success",
+        title: "Utworzono klienta!",
+        description: `Pomyślnie utworzono nowego klienta o nazwie: ${client.name}`,
+      });
+    }
+
+    return () => {
+      dispatch(reset());
+    };
+  }, [user, navigate, toast, dispatch, isSuccess, isError, message]);
 
   const handleClientChange = (e) => {
     const { name, value } = e.target;
     var finalFormat;
-    if (name === "name")
+    if (name === "name" || name === "email")
       setClient((prevClient) => ({
         ...prevClient,
-        name: value,
+        [name]: value,
       }));
     else if (name === "street" || name === "city")
       setClient((prevClient) => ({
@@ -100,8 +135,7 @@ function ClientCreator() {
       var noLettersPhone = ("" + value).replace(/\D/g, "");
       var phoneFormat = noLettersPhone.match(/^(\d{3})(\d{3})(\d{3})$/);
       if (phoneFormat) {
-        finalFormat =
-          `${phoneFormat[1]} ${phoneFormat[2]} ${phoneFormat[3]}`;
+        finalFormat = `${phoneFormat[1]} ${phoneFormat[2]} ${phoneFormat[3]}`;
         return setClient((prevClient) => ({
           ...prevClient,
           private: {
@@ -165,6 +199,18 @@ function ClientCreator() {
               name="name"
               placeholder="Nazwa klienta"
               value={client.name}
+              onChange={(e) => handleClientChange(e)}
+              className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>Email:</label>
+            <input
+              id="email"
+              type="text"
+              name="email"
+              placeholder="Email"
+              value={client.email}
               onChange={(e) => handleClientChange(e)}
               className="rounded-lg justify-center w-full xl:w-[168px] bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 h-11 text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />

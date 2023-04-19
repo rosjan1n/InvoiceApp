@@ -5,8 +5,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Authenication */
 import { login, reset } from "../../reducers/features/auth/authSlice";
+import { GoogleLogin } from "@react-oauth/google";
+import jwt_decode from "jwt-decode";
 
 /* UI Components */
+import someImage from '../../assets/images/login_page.svg';
 import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 
@@ -17,6 +20,7 @@ function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    avatar: undefined
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -34,18 +38,17 @@ function Login() {
     if (isSuccess) {
       navigate("/");
       toast({
-        variant: 'success',
-        title: 'Zalogowano pomyślnie',
-        description: `Pomyślnie zalogowano na konto ${user.username}`
+        variant: "success",
+        title: "Zalogowano pomyślnie",
+        description: `Pomyślnie zalogowano na konto ${user.username}`,
       });
     }
 
-    if(user)
-      navigate('/')
+    if (user) navigate("/");
 
     return () => {
       dispatch(reset());
-    }
+    };
   }, [user, isError, isSuccess, message, navigate, dispatch, toast]);
 
   const onChange = (e) => {
@@ -87,52 +90,77 @@ function Login() {
   );
 
   return (
-    <div className="flex flex-col gap-16 mt-4">
-      <div className="flex flex-col w-[90%] m-auto items-center">
-        <h1 className="font-bold text-2xl">Witamy ponownie!</h1>
-        <span className="font-bold text-base">Cieszymy się że do Nas wróciłeś</span>
+    <div className="flex xl:grid xl:grid-cols-2">
+      <img className="w-[90%] m-auto hidden xl:block" src={someImage} />
+      <div className="flex flex-col w-full gap-4 xl:gap-0 mt-4">
+        <h1 className="text-center font-bold text-2xl mt-auto">Logowanie</h1>
+        <form className="w-[90%] xl:w-1/3 xl:h-[70%] xl:my-12 mx-auto">
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              <FontAwesomeIcon icon="fa-solid fa-envelope" />
+            </span>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="example@invoice.com"
+            />
+          </div>
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              <FontAwesomeIcon icon="fa-solid fa-lock" />
+            </span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Hasło"
+            />
+          </div>
+          <p className="mb-3 text-sm text-end font-semibold text-blue-500 hover:underline hover:decoration-blue-500 transition-colors">
+            Zapomniałeś hasła?
+          </p>
+          <Button className="w-full" onClick={onSubmit}>
+            {isLoading ? Spinner : "Zaloguj się"}
+          </Button>
+          <p className="text-start text-sm mt-3">
+            Nie masz jeszcze konta?{" "}
+            <Link
+              className="font-semibold text-blue-500 hover:underline hover:decoration-blue-500 transition-colors"
+              to={"/signin"}
+            >
+              Zarejestruj się
+            </Link>
+          </p>
+          <div className="flex items-center gap-3 my-4">
+            <div className="border-b-[1px] w-1/2"/>
+            <div className="font-light text-sm lg:text-base">Lub</div>
+            <div className="border-b-[1px] w-1/2"/>
+          </div>
+          <div className="flex mb-4 justify-center">
+            <GoogleLogin
+              onSuccess={(res) => {
+                const decoded = jwt_decode(res.credential);
+                
+              }}
+              onError={() => {
+                console.log("Login failed");
+              }}
+            />
+            {/* <Button className="mb-4" size={'lg'} variant={'outline'} onClick={() => googleLogin()}><FontAwesomeIcon className="mr-1" icon="fa-brands fa-google fa-2xl" />Zaloguj się przez Google</Button> */}
+          </div>
+        </form>
       </div>
-      <form className="w-[90%] xl:w-[25%] m-auto">
-        <div className="flex gap-2">
-          <Button className="mb-4" size={'lg'} variant={'outline'}><FontAwesomeIcon className="mr-1" icon="fa-brands fa-apple fa-2xl" />Zaloguj się przez Apple</Button>
-          <Button className="mb-4" size={'lg'} variant={'outline'}><FontAwesomeIcon className="mr-1" icon="fa-brands fa-google fa-2xl" />Zaloguj się przez Google</Button>
-        </div>
-        <div className="flex mb-4">
-          <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-            <FontAwesomeIcon icon="fa-solid fa-envelope" />
-          </span>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={email}
-            onChange={(e) => {
-              onChange(e);
-            }}
-            className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="example@invoice.com"
-          />
-        </div>
-        <div className="flex mb-4">
-          <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-            <FontAwesomeIcon icon="fa-solid fa-lock" />
-          </span>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => {
-              onChange(e);
-            }}
-            className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Hasło"
-          />
-        </div>
-        <p className="mb-3 text-sm text-end font-semibold text-blue-500 hover:underline hover:decoration-blue-500 transition-colors">Zapomniałeś hasła?</p>
-        <Button className="w-full" onClick={onSubmit}>{isLoading ? Spinner : "Zaloguj się"}</Button>
-        <p className="text-start text-sm mt-3">Nie masz jeszcze konta? <Link className="font-semibold text-blue-500 hover:underline hover:decoration-blue-500 transition-colors" to={'/signin'}>Zarejestruj się</Link></p>
-      </form>
     </div>
   );
 }

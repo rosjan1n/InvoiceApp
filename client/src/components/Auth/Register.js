@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Authenication */
 import { register, reset } from "../../reducers/features/auth/authSlice";
+import { GoogleLogin } from "@react-oauth/google";
 
 /* UI Components */
+import someImage from '../../assets/images/login_page.svg';
 import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 
@@ -97,97 +99,103 @@ function Register() {
   );
 
   return (
-    <form className="absolute top-1/4 right-0 left-0 w-[90%] xl:w-[20%] m-auto">
-      <label
-        htmlFor="email"
-        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        E-mail
-      </label>
-      <div className="flex mb-4">
-        <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-          <FontAwesomeIcon icon="fa-solid fa-envelope" />
-        </span>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={email}
-          onChange={(e) => {
-            onChange(e);
-          }}
-          className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="example@invoice.com"
-        />
+    <div className="flex xl:grid xl:grid-cols-2">
+      <img className="w-[90%] m-auto hidden xl:block" src={someImage} />
+      <div className="flex flex-col w-full gap-4 xl:gap-0 mt-4">
+        <h1 className="text-center font-bold text-2xl mt-auto">Rejestracja</h1>
+        <form className="w-[90%] xl:w-1/3 xl:h-[70%] xl:my-12 mx-auto">
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              <FontAwesomeIcon icon="fa-solid fa-envelope" />
+            </span>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="example@invoice.com"
+            />
+          </div>
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              @
+            </span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={username}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Nazwa użytkownika"
+            />
+          </div>
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              <FontAwesomeIcon icon="fa-solid fa-lock" />
+            </span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Hasło"
+            />
+          </div>
+          <div className="flex mb-4">
+            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+              <FontAwesomeIcon icon="fa-solid fa-lock" />
+            </span>
+            <input
+              type="password"
+              id="password_repeat"
+              name="password_repeat"
+              value={password_repeat}
+              onChange={(e) => {
+                onChange(e);
+              }}
+              className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Powtórz hasło"
+            />
+          </div>
+          <Button className="w-full" onClick={onSubmit}>{isLoading ? Spinner : "Stwórz konto"}</Button>
+          <p className="text-start text-sm mt-3">
+            Masz już konto?{" "}
+            <Link
+              className="font-semibold text-blue-500 hover:underline hover:decoration-blue-500 transition-colors"
+              to={"/login"}
+            >
+              Zaloguj się
+            </Link>
+          </p>
+          <div className="flex items-center gap-3 my-4">
+            <div className="border-b-[1px] w-1/2"/>
+            <div className="font-light text-sm lg:text-base">Lub</div>
+            <div className="border-b-[1px] w-1/2"/>
+          </div>
+          <div className="flex mb-4 justify-center">
+            <GoogleLogin
+              onSuccess={(res) => {
+              }}
+              onError={() => {
+                console.log("Login failed");
+              }}
+              useOneTap
+            />
+          </div>
+        </form>
       </div>
-      <label
-        htmlFor="username"
-        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        Nazwa użytkownika
-      </label>
-      <div className="flex mb-4">
-        <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-          @
-        </span>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          value={username}
-          onChange={(e) => {
-            onChange(e);
-          }}
-          className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="invoiceapp"
-        />
-      </div>
-      <label
-        htmlFor="password"
-        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        Hasło
-      </label>
-      <div className="flex mb-4">
-        <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-          <FontAwesomeIcon icon="fa-solid fa-lock" />
-        </span>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={password}
-          onChange={(e) => {
-            onChange(e);
-          }}
-          className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Hasło"
-        />
-      </div>
-      <label
-        htmlFor="password_repeat"
-        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        Powtórz hasło
-      </label>
-      <div className="flex mb-4">
-        <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-          <FontAwesomeIcon icon="fa-solid fa-lock" />
-        </span>
-        <input
-          type="password"
-          id="password_repeat"
-          name="password_repeat"
-          value={password_repeat}
-          onChange={(e) => {
-            onChange(e);
-          }}
-          className="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Powtórz hasło"
-        />
-      </div>
-      <Button onClick={onSubmit}>{isLoading ? Spinner : "Stwórz konto"}</Button>
-    </form>
+    </div>
   );
 }
 

@@ -40,11 +40,16 @@ const ClientSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Wprowadź nazwę klienta']
   },
+  email: {
+    type: String,
+    required: [true, 'Wprowadź email']
+  },
   address: AddressSchema,
   private: PrivateSchema,
   project_id: {
-    type: String,
-    required: false
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref: 'Project'
   },
 });
 

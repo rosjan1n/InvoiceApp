@@ -24,19 +24,24 @@ import Step from "./Step";
 
 function InvoiceCreator() {
   const { user } = useSelector((state) => state.auth);
+  const invoiceState = useSelector((state) => state.invoice);
   const clientState = useSelector((state) => state.client);
   const projectState = useSelector((state) => state.project);
 
   const {
+    invoices,
+    isSuccess: invoiceIsSuccess,
+    isError: invoiceIsError,
+    message: invoiceMessage,
+  } = invoiceState;
+  const {
     clients,
-    isLoading: clientIsLoading,
     isError: clientIsError,
     message: clientMessage,
   } = clientState;
   const {
     projects,
-    isLoading: projectIsLoading,
-    isError: projestIsError,
+    isError: projectIsError,
     message: projectMessage,
   } = projectState;
   const [index, setIndex] = useState(1);
@@ -46,9 +51,28 @@ function InvoiceCreator() {
 
   useEffect(() => {
     if (clientIsError) console.log(clientMessage);
-    if (projestIsError) console.log(projectMessage);
+    if (projectIsError) console.log(projectMessage);
 
     if (!user) return navigate("/login");
+
+    if (invoiceIsSuccess) {
+      navigate('/');
+      const clientData = clients.find(
+        (c) => c._id === invoices[0].details.client_id
+      );
+      toast({
+        variant: "success",
+        title: "Wystawiono fakturę!",
+        description: `Wystawiono fakturę na klienta: ${clientData.name}`,
+      });
+    }
+    if (invoiceIsError) {
+      toast({
+        variant: "destructive",
+        title: "Wystąpił błąd",
+        description: invoiceMessage,
+      });
+    }
 
     dispatch(getClients());
     dispatch(getProjects());
@@ -56,13 +80,17 @@ function InvoiceCreator() {
     return () => {
       dispatch(resetClients());
       dispatch(resetProjects());
+      dispatch(resetInvoice());
     };
   }, [
     user,
     clientIsError,
     clientMessage,
     projectMessage,
-    projestIsError,
+    projectIsError,
+    invoiceMessage,
+    invoiceIsError,
+    invoiceIsSuccess,
     navigate,
     dispatch,
   ]);

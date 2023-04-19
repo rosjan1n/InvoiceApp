@@ -15,8 +15,8 @@ const DetailsSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Wprowadź metodę płatności']
     },
-    status: {
-        type: Number,
+    paid: {
+        type: Boolean,
         required: [true, 'Wprowadź status faktury']
     },
     discount: {
@@ -28,62 +28,14 @@ const DetailsSchema = new mongoose.Schema({
         required: [true, 'Wprowadź łączną kwote']
     },
     project_id: {
-        type: String,
-        required: [true, 'Wprowadź id projektu']
+        type: mongoose.Schema.Types.ObjectId,
+        required: [true, 'Wprowadź id projektu'],
+        ref: 'Project'
     },
     client_id: {
-        type: String,
-        required: [true, 'Wprowadź id klienta']
-    }
-}, {_id: false});
-
-const AddressSchema = new mongoose.Schema({
-    street: {
-        type: String,
-        required: [true, 'Wprowadź ulicę']
-    },
-    city: {
-        type: String,
-        required: [true, 'Wprowadź miasto']
-    },
-    postal_code: {
-        type: String,
-        required: [true, 'Wprowadź kod pocztowy']
-    }
-}, {_id: false});
-
-const PrivateSchema = new mongoose.Schema({
-    phone_number: {
-        type: String,
-        required: [true, 'Wprowadź numer telefonu']
-    },
-    bank_account: {
-        type: String,
-        required: [true, 'Wprowadź numer konta bankowego']
-    },
-    nip: {
-        type: String,
-        required: [true, 'Wprowadź NIP']
-    }
-}, {_id: false});
-
-const ClientSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Wprowadż nazwę klienta']
-    },
-    address: AddressSchema,
-    private: PrivateSchema
-}, {_id: false});
-
-const ProjectSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Wprowadź nazwę projektu']
-    },
-    category: {
-        type: String,
-        required: [true, 'Wprowadź kategorię projektu']
+        type: mongoose.Schema.Types.ObjectId,
+        required: [true, 'Wprowadź id klienta'],
+        ref: 'Client'
     }
 }, {_id: false});
 
@@ -125,8 +77,6 @@ const InvoiceSchema = new mongoose.Schema({
         ref: 'User',
     },
     details: DetailsSchema,
-    client: ClientSchema,
-    project: ProjectSchema,
     products: [ProductsSchema],
     editedAt: {
         type: Date,

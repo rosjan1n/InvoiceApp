@@ -29,29 +29,10 @@ export const invoice_form = {
     date_issue: new Date().toJSON(),
     date_sale: new Date().toJSON(),
     payment_method: "",
-    status: 0,
+    paid: false,
     total: 0,
     project_id: "",
     client_id: "",
-  },
-  client: {
-    name: "",
-    address: {
-      street: "",
-      city: "",
-      postal_code: "",
-    },
-    private: {
-      phone_number: "",
-      bank_account: "",
-      nip: "",
-    },
-  },
-  project: {
-    name: "",
-    category: "",
-    client_id: "",
-    status: 0,
   },
   products: [
     {

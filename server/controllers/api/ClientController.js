@@ -4,10 +4,8 @@ const Client = require('../../database/models/Client');
 const User = require('../../database/models/User');
 
 const getClients = asyncHandler(async (req, res) => {
-  console.log(req.user.id);
   const clients = await Client.find({ user: req.user.id });
 
-  console.log(clients);
   res.status(200).json(clients);
 })
 
@@ -19,6 +17,7 @@ const createClient = asyncHandler(async (req, res) => {
 
   const client = await Client.create({
     name: req.body.name,
+    email: req.body.email,
     address: req.body.address,
     private: req.body.private,
     user: req.user.id

@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* Actions */
-import { getClients, reset } from "../../reducers/features/clients/clientSlice";
-import { createProject } from "../../reducers/features/projects/projectSlice";
+import {
+  getClients,
+  reset as resetClients,
+} from "../../reducers/features/clients/clientSlice";
+import {
+  createProject,
+  reset as resetProjects,
+} from "../../reducers/features/projects/projectSlice";
 
 /* Utils */
-import { invoice_form } from "../../lib/utils";
+import Loader from "../ui/Loader.js";
 
 /* Components */
 import {
@@ -23,26 +29,65 @@ import { useToast } from "../ui/use-toast.tsx";
 import { Button } from "../ui/button.tsx";
 
 function ProjectCreator() {
-  const [project, setProject] = useState(invoice_form.project);
+  const [project, setProject] = useState({
+    name: "",
+    category: "",
+    status: 0,
+    client_id: "",
+  });
   const { user } = useSelector((state) => state.auth);
-  const { clients, isLoading, isError, message} = useSelector((state) => state.client);
+  const {
+    clients,
+    isLoading: isLoadingClient,
+    isError: isErrorClient,
+    message: messageInvoice,
+  } = useSelector((state) => state.client);
+  const {
+    isSuccess: isSuccessProject,
+    isError: isErrorProject,
+    message: messageProject,
+  } = useSelector((state) => state.project);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if(isError)
-      console.log(message)
+    if (isErrorClient) console.log(messageInvoice);
+    if (isErrorProject) {
+      navigate("/");
+      toast({
+        variant: "destructive",
+        title: "Wystąpił błąd!",
+        description: messageProject,
+      });
+    }
 
-    if(!user)
-      return navigate('/login');
+    if (!user) return navigate("/login");
+
+    if (isSuccessProject && project.name) {
+      navigate("/");
+      toast({
+        variant: "success",
+        title: "Utworzono projekt!",
+        description: "Pomyślnie utworzono projekt",
+      });
+    }
 
     dispatch(getClients());
 
-    return(() => {
-      dispatch(reset());
-    })
-  }, [user, isError, message, navigate, dispatch])
+    return () => {
+      dispatch(resetClients());
+      dispatch(resetProjects());
+    };
+  }, [
+    user,
+    isErrorClient,
+    isErrorProject,
+    messageProject,
+    messageInvoice,
+    navigate,
+    dispatch,
+  ]);
 
   const handleNameChange = (e) => {
     const { name, value } = e.target;
@@ -69,9 +114,10 @@ function ProjectCreator() {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    console.log(project);
     dispatch(createProject(project));
   };
+
+  if (isLoadingClient) return <Loader />;
 
   return (
     <div className="flex gap-8 xl:gap-20 flex-col mb-6">
@@ -129,10 +175,12 @@ function ProjectCreator() {
         <div className="flex flex-col gap-2">
           <label>Dane klienta:</label>
           <div className="flex">
-            <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
-              <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
-              Nowy klient
-            </span>
+            <Link to={"/clients"}>
+              <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
+                <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
+                Nowy klient
+              </span>
+            </Link>
             <Select
               value={project["client_id"]}
               onValueChange={(value) => handleClientChange(value)}
@@ -150,7 +198,10 @@ function ProjectCreator() {
                 <SelectSeparator />
                 {clients.map((client, i) => (
                   <SelectItem key={i} value={client._id}>
-                    {client.name} <span className="uppercase font-semibold">({client._id.substring(client._id.length - 6)})</span>
+                    {client.name}{" "}
+                    <span className="uppercase font-semibold">
+                      ({client._id.substring(client._id.length - 6)})
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

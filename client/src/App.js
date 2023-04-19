@@ -18,6 +18,7 @@ import ProjectCreator from './components/ProjectCreator/ProjectCreator';
 import ClientCreator from './components/ClientCreator/ClientCreator';
 import Register from './components/Auth/Register';
 import Login from './components/Auth/Login';
+import Settings from './components/Settings.js';
 import { Toaster } from './components/ui/toaster.tsx';
 
 /* Font awesome */
@@ -38,6 +39,7 @@ function App() {
             <Route path='/home' element={<Home />} />
             <Route path='/signin' element={<Register />} />
             <Route path='/login' element={<Login />} />
+            <Route path='/settings' element={<Settings />} />
             <Route path='/projects' element={<ProjectCreator />} />
             <Route path='/invoices' element={<InvoiceCreator />} />
             <Route path='/clients' element={<ClientCreator />} />
