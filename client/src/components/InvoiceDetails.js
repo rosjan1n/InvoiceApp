@@ -203,7 +203,7 @@ function InvoiceDetails() {
             <label>Nazwa odbiorcy</label>
             <div className="text-sm select-text">{user?.username}</div>
             <label>Email</label>
-            <div className="text-sm select-text">{user?.email}</div>
+            <div className="text-sm select-text blur-sm">{user?.email}</div>
             <label>Adres</label>
             <div className="text-sm select-text">{user?.address?.street}</div>
             <label>Miasto</label>

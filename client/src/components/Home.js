@@ -24,6 +24,7 @@ import { calculateDiscount } from "../lib/utils";
 
 /* UI Components */
 import { Button } from "./ui/button.tsx";
+import ChartComponent from "./ui/chart.js";
 import Loader from "./ui/Loader";
 import Start from "./ui/Start";
 import {
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select.tsx";
+import { Progress } from "flowbite-react";
 
 function Home() {
   const dispatch = useDispatch();
@@ -100,6 +102,14 @@ function Home() {
     return "";
   };
 
+  const allInvoices = () => {
+    let total = 0;
+    invoices.forEach((invoice) => {
+      total += invoice["details"].total;
+    });
+    return total;
+  };
+
   const paidInvoices = () => {
     let total = 0;
     for (let index = 0; index < invoices.length; index++)
@@ -108,10 +118,18 @@ function Home() {
     return total;
   };
 
+  const unpaidInvoices = () => {
+    let total = 0;
+    invoices.forEach((invoice) => {
+      if (!invoice["details"].paid) total += invoice["details"].total;
+    });
+    return total;
+  };
+
   function nFormatter(num, digits) {
     const lookup = [
       { value: 1, symbol: "" },
-      { value: 1e3, symbol: "K" },
+      { value: 1e3, symbol: "k" },
       { value: 1e6, symbol: "M" },
       { value: 1e9, symbol: "G" },
       { value: 1e12, symbol: "T" },
@@ -130,206 +148,184 @@ function Home() {
       : "0";
   }
 
-  if (!invoices || !clients) return <Loader />;
+  const activities = [
+    {
+      activityName: "CREATE_INVOICE",
+      invoiceId: "643f0b04fd3056d0a014e1d1",
+      toUser: "6439b3a5b7c2f0069cdf2491",
+      timestamp: "2023-04-20T15:00:11.624Z",
+    },
+    {
+      activityName: "CREATE_CLIENT",
+      clientId: "643f0a4cfd3056d0a014e1af",
+      toProject: "6439daec608dc84a3c21aa9b",
+      timestamp: "2023-04-19T12:23:11.624Z",
+    },
+  ];
 
+  function handleActivity(activity) {
+    switch (activity.activityName) {
+      case "CREATE_INVOICE":
+        return "Stworzono fakturę";
+      case "CREATE_CLIENT":
+        return "Stworzono klienta";
+      case "CREATE_PROJECT":
+        return "Stworzono projekt";
+      default:
+        return activity.activityName;
+    }
+  }
+
+  if (!invoices || !clients || !projects) return <Loader />;
+
+  console.log(activities);
   return (
-    <div className="flex gap-8 flex-col mb-6">
-      <div className="flex justify-between mt-4 w-[90%] m-auto">
-        <header className="container-header">
-          <h2 className="text-2xl font-bold">Podsumowanie</h2>
-          <small className="text-sm font-medium leading-none">
-            Znajdziesz tutaj swoje statystki
-          </small>
-        </header>
-        <div className="flex flex-col whitespace-nowrap items-end xl:flex-row xl:items-start gap-2">
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Wybierz sortowanie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Ostatnie 30 dni</SelectItem>
-            </SelectContent>
-          </Select>
-          <Link to={"/invoices"}>
-            <Button className="bg-indigo-500 hover:bg-indigo-700">
-              <FontAwesomeIcon className="mr-1" icon="fa-solid fa-plus" />
-              Nowa faktura
-            </Button>
-          </Link>
+    <div className="grid grid-cols-3 grid-flow-row auto-rows-max gap-10 w-[90%] mt-4 m-auto justify-between">
+      <div className="flex gap-8 col-span-3 justify-evenly rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4">
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-purple-500 w-6"
+              icon="fa-solid fa-file-invoice-dollar"
+            />
+            <span className="font-light text-lg">Wszystkie faktury</span>
+          </div>
+          <span className="font-bold text-3xl">
+            ${nFormatter(allInvoices(), 1)}
+          </span>
+        </div>
+        <div className="separator w-px my-5 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-green-500"
+              icon="fa-solid fa-circle-check"
+            />
+            <span className="font-light text-lg">Opłacone faktury</span>
+          </div>
+          <span className="font-bold text-3xl">
+            ${nFormatter(paidInvoices(), 1)}
+          </span>
+        </div>
+        <div className="separator w-px my-5 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-red-500"
+              icon="fa-solid fa-circle-xmark"
+            />
+            <span className="font-light text-lg">Nieopłacone faktury</span>
+          </div>
+          <span className="font-bold text-3xl">
+            ${nFormatter(unpaidInvoices(), 1)}
+          </span>
+        </div>
+        <div className="separator w-px my-5 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-orange-500 w-6"
+              icon="fa-solid fa-file-invoice"
+            />
+            <span className="font-light text-lg">Wystawione faktury</span>
+          </div>
+          <span className="font-bold text-3xl">{invoices.length}</span>
+        </div>
+        <div className="separator w-px my-5 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-blue-500"
+              icon="fa-solid fa-user"
+            />
+            <span className="font-light text-lg">Wszyscy klienci</span>
+          </div>
+          <span className="font-bold text-3xl">{clients.length}</span>
+        </div>
+        <div className="separator w-px my-5 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex flex-col gap-1 items-center">
+          <div className="flex items-center gap-3">
+            <FontAwesomeIcon
+              className="text-2xl p-2 rounded-full ring-2 ring-gray-300 text-green-500"
+              icon="fa-solid fa-folder"
+            />
+            <span className="font-light text-lg">Wszystkie projekty</span>
+          </div>
+          <span className="font-bold text-3xl">{projects.length}</span>
         </div>
       </div>
-      <div className="flex flex-col gap-10 xl:flex-row justify-between w-[90%] m-auto">
-        <div className="flex flex-col flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="flex gap-40">
-            <div className="text-3xl font-bold">
-              <CountUp end={clients.length} duration={0.8} />
-            </div>
-            <div className="text-3xl">
-              <FontAwesomeIcon
-                className="text-orange-500"
-                icon="fa-solid fa-user"
-              />
-            </div>
-          </div>
-          <div className="text-2xl font-light">Klienci</div>
-        </div>
-        <div className="flex flex-col flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="flex items-center gap-40">
-            <div className="text-3xl font-bold">
-              <CountUp end={invoices.length} duration={0.8} />
-            </div>
-            <div className="text-3xl">
-              <FontAwesomeIcon
-                className="text-purple-500"
-                icon="fa-solid fa-file-invoice"
-              />
-            </div>
-          </div>
-          <div className="text-2xl font-light">Faktury</div>
-        </div>
-        <div className="flex flex-col flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="flex items-center gap-40">
-            <div className="text-3xl font-bold">
-              <CountUp end={projects.length} duration={0.8} />
-            </div>
-            <div className="text-3xl">
-              <FontAwesomeIcon
-                className="text-blue-500"
-                icon="fa-solid fa-folder"
-              />
-            </div>
-          </div>
-          <div className="text-2xl font-light">Projekty</div>
-        </div>
-        <div className="flex flex-col flex-wrap content-around p-8 gap-3 w-full xl:w-1/5 whitespace-nowrap border rounded-3xl border-gray-200 dark:border-slate-700 transition-shadow shadow-lg hover:shadow-2xl hover:border-gray-300">
-          <div className="flex items-center gap-40">
-            <div className="text-3xl font-bold">
-              ${nFormatter(paidInvoices())}
-            </div>
-            <div className="text-3xl">
-              <FontAwesomeIcon
-                className="text-green-500"
-                icon="fa-solid fa-dollar-sign"
-              />
-            </div>
-          </div>
-          <div className="text-2xl font-light">Opłacone faktury</div>
-        </div>
+      <div className="flex flex-col col-span-2 rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 items-center">
+        <span className="font-bold text-2xl">
+          Podsumowanie wszystkich faktur
+        </span>
+        <ChartComponent invoices={invoices} />
       </div>
+      <div className="flex flex-col gap-10 w-3/4 rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 justify-self-end items-center">
+        <span className="font-bold text-2xl">Ostatnie aktywności</span>
+        <ol class="relative mx-4 border-l border-gray-200 dark:border-gray-700">
+          {activities.map((activity, index) => {
+            const diffDays = moment().diff(activity.timestamp, "days");
 
-      <div className="flex flex-col xl:flex-row justify-center w-[90%] m-auto gap-10 items-start">
-        <div className="flex flex-col whitespace-nowrap w-full xl:w-[40%] p-3 gap-8">
-          <div className="text-xl font-bold">Ostatnie wystawione faktury</div>
-          <div className="recent-body">
-            <div className="flex flex-col h-[21rem] overflow-auto border rounded-3xl border-gray-200 dark:border-slate-700 shadow-lg">
-              {invoiceIsLoading || invoiceIsError || !invoices.length ? (
-                <Start
-                  title={"Brak transakcji"}
-                  subtitle={"Rozpocznij swoją przygodę już teraz!"}
-                  btn_text={"Utwórz transakcję"}
-                />
-              ) : (
-                invoices.map((invoice, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col xl:flex-row transition-colors border-b border-opacity-40 border-slate-300 last:border-b-0 xl:border-b-0 hover:bg-gray-200 dark:hover:bg-slate-800"
-                  >
-                    <div className="flex items-center xl:items-start flex-col w-full xl:w-[35%] p-8 whitespace-normal justify-center">
-                      <div className="font-semibold">
-                        {clientName(invoice.details.client_id)}
-                      </div>
-                      <small>{projectName(invoice.details.project_id)}</small>
-                    </div>
-                    <div className="flex items-center flex-col p-3 w-full xl:w-1/4 justify-center">
-                      <Link
-                        className="text-sky-500 hover:text-sky-600 hover:underline"
-                        to={"/invoices/" + invoice._id}
-                      >
-                        Zobacz fakturę
-                      </Link>
-                      <small className="text-sm uppercase font-semibold select-all">
-                        <span className="font-bold">#</span>
-                        {invoice._id.substring(invoice._id.length - 6)}
-                      </small>
-                    </div>
-                    <div className="flex items-center flex-col p-3 w-full xl:w-[20%] justify-center">
-                      <div
-                        className={
-                          invoice["details"].paid
-                            ? "p-2 bg-green-100 dark:bg-green-200 rounded-3xl text-green-800 dark:text-green-900 font-semibold"
-                            : "p-2 bg-orange-100 rounded-3xl text-orange-800 font-semibold animate-pulse"
-                        }
-                      >
-                        {invoice["details"].paid ? "Zapłacone" : "Oczekuje"}
-                      </div>
-                    </div>
-                    <div className="flex items-center xl:items-end flex-col p-3 w-full xl:w-[20%] justify-center">
-                      <div className="font-semibold">
-                        $
-                        <CountUp
-                          end={calculateDiscount(invoice).toFixed(2)}
-                          decimal="."
-                          decimals={2}
-                          duration={0.8}
-                        />
-                      </div>
-                      <small className="leading-none">
-                        {moment(invoice["details"].date_issue).format("L")}
-                      </small>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col whitespace-nowrap w-full xl:w-[40%] p-3 gap-8">
-          <div className="text-xl font-bold">Ostatnie projekty</div>
-          <div className="recent-body">
-            <div className="flex flex-col h-[21rem] overflow-auto border rounded-3xl border-gray-200 dark:border-slate-700 shadow-lg">
-              {projectIsLoading || projestIsError || !projects.length ? (
-                <Start
-                  title={"Brak projektów"}
-                  subtitle={"Rozpocznij swoją przygodę już teraz!"}
-                  btn_text={"Utwórz projekt"}
-                />
-              ) : (
-                projects.map((project, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col xl:flex-row items-center xl:items-start transition-colors border-b border-opacity-40 border-slate-300 last:border-b-0 xl:border-b-0 hover:bg-gray-200 dark:hover:bg-slate-800"
-                  >
-                    <div className="flex items-center flex-col p-3 w-1/4 justify-center">
-                      <div className="font-semibold">{project.name}</div>
-                      <small className="recent-subtitle">
-                        {clientName(project.client_id)}
-                      </small>
-                    </div>
-                    <div className="flex items-center flex-col p-3 w-[50%] justify-center">
-                      <div
-                        className={
-                          project.status === 1
-                            ? "p-2 bg-green-100 dark:bg-green-200 rounded-3xl text-green-800 dark:text-green-900 font-semibold"
-                            : "p-2 bg-orange-100 rounded-3xl text-orange-800 font-semibold animate-pulse"
-                        }
-                      >
-                        {project.status === 1 ? "Ukończone" : "W trakcie"}
-                      </div>
-                    </div>
-                    <div className="flex items-center xl:items-end flex-col p-3 w-[20%] justify-center">
-                      <div className="text-sky-500 hover:text-sky-600 hover:underline">
-                        <Link to={"/projects/" + project._id}>
-                          Zobacz szczegóły
+            console.log(diffDays);
+            if (diffDays >= 1) return null;
+
+            return (
+              <li key={index} class="mb-10 ml-6">
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+                  <img
+                    class="rounded-full shadow-lg"
+                    src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                    alt="Bonnie image"
+                  />
+                </span>
+                <div class="items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex dark:bg-gray-700 dark:border-gray-600">
+                  <time class="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
+                    {moment(activity.timestamp).fromNow()}
+                  </time>
+                  <div class="text-sm font-normal text-gray-500 dark:text-gray-300">
+                    {handleActivity(activity)}{" "}
+                    {activity.invoiceId ? (
+                      <span className="font-semibold">
+                        #
+                        <Link
+                          to={"/"}
+                          className="uppercase text-blue-500 hover:underline"
+                        >
+                          {activity.invoiceId.substring(
+                            activity.invoiceId.length - 6
+                          )}
                         </Link>
-                      </div>
-                      <small>{project.category}</small>
-                    </div>
+                      </span>
+                    ) : (
+                      ""
+                    )}{" "}
+                    {activity.clientId ? (
+                      <span>
+                        o nazwie{" "}
+                        <Link
+                          to={"/"}
+                          className="font-semibold text-blue-500 hover:underline"
+                        >
+                          EXP.PL
+                        </Link>
+                      </span>
+                    ) : (
+                      ""
+                    )}{" "}
+                    {activity.invoiceId ? (
+                      <span>
+                        {" "}
+                        na kwotę <span className="font-semibold">$5000</span>
+                      </span>
+                    ) : (
+                      ""
+                    )}
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </div>
   );
