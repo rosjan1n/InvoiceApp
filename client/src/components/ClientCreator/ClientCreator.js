@@ -47,7 +47,7 @@ function ClientCreator() {
         description: message,
       });
 
-    if (isSuccess && client.name) {
+    if (isSuccess) {
       navigate("/");
       toast({
         variant: "success",

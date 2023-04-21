@@ -16,6 +16,8 @@ import { Button } from "../ui/button.tsx";
 
 /* Utils */
 import { invoice_form, calculateBrutto, calculateVat } from "../../lib/utils";
+import { reset as resetProjects } from "../../reducers/features/projects/projectSlice.js";
+import { reset as resetClients } from "../../reducers/features/clients/clientSlice.js";
 
 function Step({ currentStep, clients, projects, onSubmit }) {
   const [data, setData] = useState(invoice_form);
@@ -113,10 +115,12 @@ function Step({ currentStep, clients, projects, onSubmit }) {
         <div className="flex flex-col gap-2 w-full xl:w-1/4">
           <label>Dane klienta:</label>
           <div className="flex">
-            <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
-              <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
-              Nowy klient
-            </span>
+            <Link to={"/clients"} onClick={resetClients()}>
+              <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
+                <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
+                Nowy klient
+              </span>
+            </Link>
             <Select
               name="select-client"
               value={data["details"].client_id}
@@ -135,7 +139,10 @@ function Step({ currentStep, clients, projects, onSubmit }) {
                 <SelectSeparator />
                 {clients.map((client, i) => (
                   <SelectItem key={i} value={client._id}>
-                    {client.name} <span className="uppercase font-semibold">({client._id.substring(client._id.length - 6)})</span>
+                    {client.name}{" "}
+                    <span className="uppercase font-semibold">
+                      ({client._id.substring(client._id.length - 6)})
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -145,10 +152,12 @@ function Step({ currentStep, clients, projects, onSubmit }) {
         <div className="flex flex-col gap-2 w-full xl:w-1/4">
           <label>Dane projektu:</label>
           <div className="flex">
-            <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
-              <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
-              <Link to={"/projects"}>Nowy projekt</Link>
-            </span>
+            <Link to={"/projects"} onClick={resetProjects()}>
+              <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
+                <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
+                Nowy projekt
+              </span>
+            </Link>
             <Select
               name="select-project"
               value={data["details"].project_id}
@@ -167,7 +176,11 @@ function Step({ currentStep, clients, projects, onSubmit }) {
                 <SelectSeparator />
                 {projects.map((project, i) => (
                   <SelectItem key={i} value={project._id}>
-                    {project.name} (<span className="uppercase font-semibold">{project._id.substring(project._id.length - 6)}</span>)
+                    {project.name} (
+                    <span className="uppercase font-semibold">
+                      {project._id.substring(project._id.length - 6)}
+                    </span>
+                    )
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -640,7 +653,7 @@ function Step({ currentStep, clients, projects, onSubmit }) {
         </div>
       </form>
     );
-  if (currentStep === 4) onSubmit({ data });
+  if (currentStep === 4) onSubmit(data);
 }
 
 export default Step;

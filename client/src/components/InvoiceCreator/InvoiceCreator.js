@@ -93,13 +93,22 @@ function InvoiceCreator() {
     invoiceIsSuccess,
     navigate,
     dispatch,
+    toast
   ]);
+
+  function countTotal(invoice) {
+    let total = 0;
+    invoice.products.forEach(product => {
+      total += (product.quantity * product.price * (1 + (product.vat / 100)));
+    });
+    return total.toFixed(2);
+  }
 
   function prevStep() {
     if (index > 1) setIndex((prevIndex) => prevIndex - 1);
   }
 
-  function nextStep(data) {
+  function nextStep(invoice) {
     if (index - 4) {
       if (validation()) setIndex((prevIndex) => prevIndex + 1);
       else {
@@ -112,7 +121,8 @@ function InvoiceCreator() {
       }
     } else {
       prevStep();
-      dispatch(createInvoice(data.data));
+      invoice.details.total = countTotal(invoice);
+      dispatch(createInvoice(invoice));
     }
   }
 

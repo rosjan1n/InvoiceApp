@@ -6,7 +6,7 @@ export function cn(...inputs) {
 }
 
 export const calculateBrutto = (product) => {
-  return product.quantity * product.price * (1 + product.vat / 100);
+  return parseFloat(parseInt(product.quantity) * parseInt(product.price) * (1 + parseInt(product.vat) / 100));
 };
 
 export const calculateVat = (product) => {

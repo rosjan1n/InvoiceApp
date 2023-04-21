@@ -64,7 +64,7 @@ function ProjectCreator() {
 
     if (!user) return navigate("/login");
 
-    if (isSuccessProject && project.name) {
+    if (isSuccessProject) {
       navigate("/");
       toast({
         variant: "success",
@@ -83,10 +83,12 @@ function ProjectCreator() {
     user,
     isErrorClient,
     isErrorProject,
+    isSuccessProject,
     messageProject,
     messageInvoice,
     navigate,
     dispatch,
+    toast
   ]);
 
   const handleNameChange = (e) => {
@@ -175,7 +177,7 @@ function ProjectCreator() {
         <div className="flex flex-col gap-2">
           <label>Dane klienta:</label>
           <div className="flex">
-            <Link to={"/clients"}>
+            <Link to={"/clients"} onClick={resetClients()}>
               <span className="inline-flex items-center justify-center px-3 w-[125px] h-[43px] text-sm whitespace-nowrap text-blue-500 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-700 cursor-pointer bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:border-gray-600">
                 <FontAwesomeIcon className="pr-1" icon="fa-solid fa-plus" />
                 Nowy klient
