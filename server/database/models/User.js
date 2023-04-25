@@ -24,6 +24,37 @@ const PrivateSchema = new mongoose.Schema({
   }
 }, {_id: false});
 
+const ActivitySchema = new mongoose.Schema({
+  activity_name: {
+    type: String,
+    required: [true, 'Wprowadź nazwę aktywności']
+  },
+  invoice_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Invoice'
+  },
+  client_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    req: 'Client'
+  },
+  project_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project'
+  },
+  toClient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client'
+  },
+  toProject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project'
+  },
+  timestamp: {
+    type: Date,
+    default: new Date()
+  }
+}, {_id: false});
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -40,6 +71,7 @@ const userSchema = new mongoose.Schema({
   },
   address: AddressSchema,
   private: PrivateSchema,
+  activities: [ActivitySchema],
   avatar: {
     type: String
   }

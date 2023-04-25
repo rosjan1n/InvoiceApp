@@ -160,6 +160,10 @@ function Home() {
     }
   }
 
+  function isNoActitivites() {
+    return activities.every((activity) => moment().diff(activity.timestamp, 'days') > 5);
+  }
+
   if (invoiceIsLoading || clientIsLoading || projectIsLoading) return <Loader />;
 
   return (
@@ -499,11 +503,12 @@ function Home() {
       </div>
       <div className="flex flex-col w-full col-span-1 md:col-span-2 lg:col-span-1 gap-10 rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 justify-self-end items-center">
         <span className="font-bold text-2xl">Ostatnie aktywności</span>
+        {isNoActitivites() ? <small class="font-semibold text-md text-gray-500 dark:text-gray-400">Brak ostatnich aktywności</small> : []}
         <ol className="relative mx-4 border-l border-gray-200 dark:border-gray-700">
           {activities.map((activity, index) => {
             const diffDays = moment().diff(activity.timestamp, "days");
 
-            if (diffDays > 3) return null;
+            if (diffDays > 5) return null;
 
             return (
               <li key={index} className="mb-10 ml-6">

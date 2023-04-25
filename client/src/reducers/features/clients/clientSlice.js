@@ -35,7 +35,6 @@ export const getClients = createAsyncThunk('clients/getAll', async (_, thunkAPI)
           error.response.data.message) ||
         error.message ||
         error.toString();
-        console.log(message);
       return thunkAPI.rejectWithValue(message);
   }
 });
