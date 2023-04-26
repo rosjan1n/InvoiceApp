@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ import Loader from "./ui/Loader";
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [search, setSearch] = useState('');
   const { user } = useSelector((state) => state.auth);
   const invoiceState = useSelector((state) => state.invoice);
   const clientState = useSelector((state) => state.client);
@@ -110,6 +111,14 @@ function Home() {
     return total;
   };
 
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+  }
+
+  const searchData = {
+    invoices: invoices.filter((invoice) => invoice._id.substring(invoice._id - 6).includes(search))
+  }
+
   function nFormatter(num, digits) {
     const lookup = [
       { value: 1, symbol: "" },
@@ -143,7 +152,7 @@ function Home() {
       activityName: "CREATE_CLIENT",
       clientId: "643f0a4cfd3056d0a014e1af",
       toProject: "6439daec608dc84a3c21aa9b",
-      timestamp: "2023-04-19T12:23:11.624Z",
+      timestamp: "2023-04-20T12:23:11.624Z",
     },
   ];
 
@@ -169,7 +178,7 @@ function Home() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-10 w-[90%] mt-4 m-auto justify-between items-start">
       <div className="flex col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 text-center justify-between md:text-left">
-        <h1 className="font-bold text-3xl"><FontAwesomeIcon className="mr-2" icon="fa-solid fa-house" />Strona główna</h1>
+        <h1 className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-800">Strona główna</h1>
         <Link to={'/invoices'} onClick={resetInvoices()}><Button variant={'outline'}><FontAwesomeIcon className="mr-2" icon="fa-solid fa-plus" />Nowa faktura</Button></Link>
       </div>
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-2 justify-evenly rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4">
@@ -409,6 +418,7 @@ function Home() {
             <input
               type="text"
               id="table-search"
+              onChange={handleSearch}
               className="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Wyszukaj fakturę"
             />
@@ -447,7 +457,7 @@ function Home() {
             </tr>
           </thead>
           <tbody>
-            {invoices.map((invoice, index) => (
+            {searchData.invoices.map((invoice, index) => (
               <tr
                 key={index}
                 className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -503,7 +513,7 @@ function Home() {
       </div>
       <div className="flex flex-col w-full col-span-1 md:col-span-2 lg:col-span-1 gap-10 rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 justify-self-end items-center">
         <span className="font-bold text-2xl">Ostatnie aktywności</span>
-        {isNoActitivites() ? <small class="font-semibold text-md text-gray-500 dark:text-gray-400">Brak ostatnich aktywności</small> : []}
+        {isNoActitivites() ? <small className="font-semibold text-md text-gray-500 dark:text-gray-400">Brak ostatnich aktywności</small> : []}
         <ol className="relative mx-4 border-l border-gray-200 dark:border-gray-700">
           {activities.map((activity, index) => {
             const diffDays = moment().diff(activity.timestamp, "days");
