@@ -10,7 +10,7 @@ const createClient = async (clientData, token) => {
   };
 
   const res = await axios.post(API_URL, clientData, config);
-
+  console.log(res.data);
   return res.data;
 };
 

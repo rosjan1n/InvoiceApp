@@ -20,7 +20,6 @@ function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    avatar: undefined
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -151,7 +150,15 @@ function Login() {
             <GoogleLogin
               onSuccess={(res) => {
                 const decoded = jwt_decode(res.credential);
-                
+                setFormData((prevData) => ({
+                  ...prevData,
+                  email: decoded.email
+                }))
+                toast({
+                  variant: 'success',
+                  title: 'Pomyślnie pobrano dane!',
+                  description: 'Pole e-mail zostało uzupełnione danymi z konta Google, aby przejść dalej wprowadź hasło oraz kliknij `Zaloguj się`.'
+                })
               }}
               onError={() => {
                 console.log("Login failed");

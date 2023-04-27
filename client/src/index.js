@@ -16,7 +16,7 @@ const store = configureStore({
     auth: authReducer,
     invoice: invoiceReducer,
     client: clientReducer,
-    project: projectReducer
+    project: projectReducer,
   },
 });
 

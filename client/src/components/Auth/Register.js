@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 /* Authenication */
 import { register, reset } from "../../reducers/features/auth/authSlice";
 import { GoogleLogin } from "@react-oauth/google";
+import jwt_decode from "jwt-decode";
 
 /* UI Components */
 import someImage from '../../assets/images/login_page.svg';
@@ -21,12 +22,13 @@ function Register() {
     email: "",
     password: "",
     password_repeat: "",
+    avatar: ''
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const { username, email, password, password_repeat } = formData;
+  const { username, email, password, password_repeat, avatar } = formData;
 
   useEffect(() => {
     if (isError)
@@ -73,6 +75,7 @@ function Register() {
         email,
         password,
         password_repeat,
+        avatar
       };
 
       dispatch(register(userData));
@@ -186,6 +189,18 @@ function Register() {
           <div className="flex mb-4 justify-center">
             <GoogleLogin
               onSuccess={(res) => {
+                const decoded = jwt_decode(res.credential);
+                setFormData((prevData) => ({
+                  ...prevData,
+                  email: decoded.email,
+                  username: decoded.given_name,
+                  avatar: decoded.picture
+                }));
+                toast({
+                  variant: 'success',
+                  title: 'Pomyślnie pobrano dane!',
+                  description: 'Pola e-mail oraz nazwa użytkownika została uzupełniona danymi z konta Google, aby przejść dalej wprowadź hasło oraz kliknij `Stwórz konto`.'
+                })
               }}
               onError={() => {
                 console.log("Login failed");

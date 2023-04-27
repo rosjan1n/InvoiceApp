@@ -22,8 +22,8 @@ const createClient = asyncHandler(async (req, res) => {
     private: req.body.private,
     user: req.user.id
   })
-
-  res.status(200).json(client);
+  await client.save();
+  res.status(200).json({ _id: client._id });
 })
 
 module.exports = {

@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   registerUser,
   loginUser,
+  addActivity,
 } = require("../controllers/api/UserController.js");
 const invoiceController = require("../controllers/api/InvoiceController.js");
 const clientController = require("../controllers/api/ClientController.js");
@@ -14,6 +15,9 @@ const { protect } = require("../middleware/authMiddleware.js");
 /* Auth API */
 router.post("/users/signin", registerUser);
 router.post("/users/login", loginUser);
+
+/* Users API */
+router.route("/users/:id/activites").post(protect, addActivity);
 
 /* Clients API */
 router

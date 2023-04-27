@@ -5,7 +5,7 @@ const User = require('../../database/models/User');
 const config = require('../../config/config');
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body
+  const { username, email, password, avatar } = req.body
 
   if (!username || !email || !password) {
     res.status(400)
@@ -28,6 +28,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     username,
     email,
+    avatar,
     password: hashedPassword,
   })
 
@@ -36,6 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
       _id: user.id,
       username: user.username,
       email: user.email,
+      avatar: user.avatar,
       token: generateToken(user._id),
     })
   } else {
@@ -63,6 +65,34 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 })
 
+const addActivity = asyncHandler(async (req, res) => {
+  const id = req.id;
+  const newActivity = req.body;
+  try {
+    const user = User.findById(id);
+
+    if(!req.user) {
+      res.status(400)
+      throw new Error('Nieznaleziono konta')
+    }
+
+    if(!user) {
+      res.status(400)
+      throw new Error('Nieznaleziono konta')
+    }
+
+    if (user._id.toString() !== id) {
+      res.status(401)
+      throw new Error('Brak autoryzacji')
+    }
+    user.activities.push(newActivity);
+    await user.save();
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+})
+
 const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(req.user)
 })
@@ -77,5 +107,6 @@ const generateToken = (id) => {
 module.exports = {
   registerUser,
   loginUser,
+  addActivity,
   getMe,
 }
