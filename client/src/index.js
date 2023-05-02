@@ -5,11 +5,11 @@ import { Provider } from "react-redux";
 import App from "./App";
 
 import authReducer from "./reducers/features/auth/authSlice";
-import invoiceReducer from './reducers/features/invoices/invoiceSlice';
-import clientReducer from './reducers/features/clients/clientSlice';
-import projectReducer from './reducers/features/projects/projectSlice';
-import { GoogleOAuthProvider } from '@react-oauth/google'
-
+import invoiceReducer from "./reducers/features/invoices/invoiceSlice";
+import clientReducer from "./reducers/features/clients/clientSlice";
+import projectReducer from "./reducers/features/projects/projectSlice";
+import activityReducer from "./reducers/features/activities/activitySlice";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const store = configureStore({
   reducer: {
@@ -17,6 +17,7 @@ const store = configureStore({
     invoice: invoiceReducer,
     client: clientReducer,
     project: projectReducer,
+    activity: activityReducer,
   },
 });
 

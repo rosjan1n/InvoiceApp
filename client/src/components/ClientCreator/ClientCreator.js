@@ -8,10 +8,7 @@ import {
   createClient,
   reset as clientReset,
 } from "../../reducers/features/clients/clientSlice";
-import {
-  createActivity,
-  reset as authReset,
-} from "../../reducers/features/auth/authSlice.js";
+import { createActivity } from "../../reducers/features/auth/authSlice.js";
 
 /* Components */
 import { useToast } from "../ui/use-toast.tsx";
@@ -22,7 +19,9 @@ import BuildMap from "../ui/MapCreator";
 
 function ClientCreator() {
   const { user } = useSelector((state) => state.auth);
-  const { isSuccess, isError, message } = useSelector((state) => state.client);
+  const { clients, isSuccess, isError, message } = useSelector(
+    (state) => state.client
+  );
   const [client, setClient] = useState({
     name: "",
     email: "",
@@ -62,7 +61,6 @@ function ClientCreator() {
 
     return () => {
       dispatch(clientReset());
-      dispatch(authReset());
     };
   }, [user, navigate, toast, dispatch, isSuccess, isError, message]);
 
@@ -174,12 +172,7 @@ function ClientCreator() {
   const onSubmit = (e) => {
     e.preventDefault();
 
-/*     const newActivity = {
-      activityName: 'CREATE_CLIENT',
-      invoice_id: null,
-      client_id: client
-    } */
-    console.log(dispatch(createClient(client)));
+    dispatch(createClient(client));
   };
 
   return (

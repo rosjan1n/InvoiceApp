@@ -17,6 +17,10 @@ import {
   getProjects,
   reset as resetProjects,
 } from "../reducers/features/projects/projectSlice";
+import {
+  getActivities,
+  reset as resetActivities,
+} from "../reducers/features/activities/activitySlice";
 
 /* UI Components */
 import { Button } from "./ui/button.tsx";
@@ -26,11 +30,12 @@ import Loader from "./ui/Loader";
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const { user } = useSelector((state) => state.auth);
   const invoiceState = useSelector((state) => state.invoice);
   const clientState = useSelector((state) => state.client);
   const projectState = useSelector((state) => state.project);
+  const activityState = useSelector((state) => state.activity);
 
   const {
     invoices,
@@ -47,25 +52,34 @@ function Home() {
   const {
     projects,
     isLoading: projectIsLoading,
-    isError: projestIsError,
+    isError: projectIsError,
     message: projectMessage,
   } = projectState;
+  const {
+    activities,
+    isLoading: activityIsLoading,
+    isError: activityIsError,
+    message: activityMessage,
+  } = activityState;
 
   useEffect(() => {
     if (!user) return navigate("/login");
 
     if (invoiceIsError) console.log(invoiceMessage);
     if (clientIsError) console.log(clientMessage);
-    if (projestIsError) console.log(projectMessage);
+    if (projectIsError) console.log(projectMessage);
+    if (activityIsError) console.log(activityMessage);
 
     dispatch(getInvoices());
     dispatch(getClients());
     dispatch(getProjects());
+    dispatch(getActivities());
 
     return () => {
       dispatch(resetInvoices());
       dispatch(resetClients());
       dispatch(resetProjects());
+      dispatch(resetActivities());
     };
   }, [
     user,
@@ -73,7 +87,9 @@ function Home() {
     invoiceMessage,
     clientIsError,
     clientMessage,
-    projestIsError,
+    projectIsError,
+    activityIsError,
+    activityMessage,
     projectMessage,
     navigate,
     dispatch,
@@ -85,6 +101,21 @@ function Home() {
       if (client._id === id) name = client.name;
     });
     return name;
+  };
+
+  const projectName = (id) => {
+    var name = "";
+    projects.forEach((project) => {
+      if (project._id === id) name = project.name;
+    });
+    return name;
+  };
+
+  const getTotal = (id) => {
+    let total = 0;
+    const invoice = invoices.find((i) => i._id === id);
+    total = invoice.details.total;
+    return total;
   };
 
   const allInvoices = () => {
@@ -113,11 +144,13 @@ function Home() {
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
-  }
+  };
 
   const searchData = {
-    invoices: invoices.filter((invoice) => invoice._id.substring(invoice._id - 6).includes(search))
-  }
+    invoices: invoices?.filter((invoice) =>
+      invoice._id.substring(invoice._id - 6).includes(search)
+    ),
+  };
 
   function nFormatter(num, digits) {
     const lookup = [
@@ -137,36 +170,91 @@ function Home() {
         return num >= item.value;
       });
     return item
-      ? ((num / item.value).toFixed(digits).replace(rx, "$1")).replace('.', ',') + ' ' + item.symbol
+      ? (num / item.value).toFixed(digits).replace(rx, "$1").replace(".", ",") +
+          " " +
+          item.symbol
       : "0";
   }
 
   function handleActivity(activity) {
-    switch (activity.activityName) {
-      case "CREATE_INVOICE":
-        return "Stworzono fakturę";
-      case "CREATE_CLIENT":
-        return "Stworzono klienta";
-      case "CREATE_PROJECT":
-        return "Stworzono projekt";
-      default:
-        return activity.activityName;
+    const {
+      activity_name,
+      project_id,
+      client_id,
+      invoice_id,
+      toClient,
+      toProject,
+    } = activity;
+    let message = "";
+
+    if (
+      activity_name === "CREATE_CLIENT" ||
+      activity_name === "CREATE_PROJECT"
+    ) {
+      return (message = (
+        <span>
+          Stworzono {activity_name === "CREATE_CLIENT" ? "klienta" : "projekt"}{" "}
+          o nazwie{" "}
+          <Link
+            to={
+              activity_name === "CREATE_CLIENT"
+                ? `/clients/${client_id}`
+                : `/projects/${project_id}`
+            }
+            className="text-blue-500 font-bold hover:underline"
+          >
+            {activity_name === "CREATE_CLIENT"
+              ? clientName(client_id)
+              : projectName(project_id)}
+          </Link>
+          .
+        </span>
+      ));
+    } else if (activity_name === "CREATE_INVOICE") {
+      return (message = (
+        <span>
+          Stworzono fakturę dla klienta{" "}
+          <Link
+            to={`/invoices/${invoice_id}`}
+            className="text-blue-500 font-bold hover:underline"
+          >
+            {clientName(toClient)}
+          </Link>{" "}
+          na kwotę <span className="font-bold">{getTotal(invoice_id)}</span>{" "}
+          PLN.
+        </span>
+      ));
     }
+    return message;
   }
 
   function isNoActitivites() {
-    if(!user.activities)
-      return true
-    return user.activities.every((activity) => moment().diff(activity.timestamp, 'days') > 5);
+    if (!activities) return true;
+    return activities.every(
+      (activity) => moment().diff(activity.timestamp, "days") > 5
+    );
   }
 
-  if (invoiceIsLoading || clientIsLoading || projectIsLoading) return <Loader />;
+  if (
+    invoiceIsLoading ||
+    clientIsLoading ||
+    projectIsLoading ||
+    activityIsLoading
+  )
+    return <Loader />;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-10 w-[90%] mt-4 m-auto justify-between items-start">
       <div className="flex col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 text-center justify-between md:text-left">
-        <h1 className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-800">Strona główna</h1>
-        <Link to={'/invoices'} onClick={resetInvoices()}><Button variant={'outline'}><FontAwesomeIcon className="mr-2" icon="fa-solid fa-plus" />Nowa faktura</Button></Link>
+        <h1 className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-800">
+          Strona główna
+        </h1>
+        <Link to={"/invoices"} onClick={resetInvoices()}>
+          <Button variant={"outline"}>
+            <FontAwesomeIcon className="mr-2" icon="fa-solid fa-plus" />
+            Nowa faktura
+          </Button>
+        </Link>
       </div>
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-2 justify-evenly rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4">
         <div className="flex flex-col gap-1 items-center">
@@ -178,7 +266,7 @@ function Home() {
             <span className="font-light text-lg">Wszystkie faktury</span>
           </div>
           <span className="font-bold text-3xl">
-            {nFormatter(allInvoices(), 1)} PLN
+            {nFormatter(allInvoices(), 2)} PLN
           </span>
         </div>
         <div className="separator h-px mx-24 lg:w-px lg:h-auto lg:my-5 lg:mx-0 bg-gray-200 dark:bg-gray-700" />
@@ -191,7 +279,7 @@ function Home() {
             <span className="font-light text-lg">Opłacone faktury</span>
           </div>
           <span className="font-bold text-3xl">
-            {nFormatter(paidInvoices(), 1)} PLN
+            {nFormatter(paidInvoices(), 2)} PLN
           </span>
         </div>
         <div className="separator h-px mx-24 lg:w-px lg:h-auto lg:my-5 lg:mx-0 bg-gray-200 dark:bg-gray-700" />
@@ -204,7 +292,7 @@ function Home() {
             <span className="font-light text-lg">Nieopłacone faktury</span>
           </div>
           <span className="font-bold text-3xl">
-            {nFormatter(unpaidInvoices(), 1)} PLN
+            {nFormatter(unpaidInvoices(), 2)} PLN
           </span>
         </div>
       </div>
@@ -345,14 +433,16 @@ function Home() {
                     </span>
                   )}
                 </td>
-                <td className="px-6 py-4">{invoice?.details.total.toFixed(2)} PLN</td>
                 <td className="px-6 py-4">
-                  <a
-                    href="#"
+                  {invoice?.details.total.toFixed(2)} PLN
+                </td>
+                <td className="px-6 py-4">
+                  <Link
+                    to={`/invoices/${invoice._id}`}
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
                   >
                     Edytuj
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -361,9 +451,15 @@ function Home() {
       </div>
       <div className="flex flex-col w-full col-span-1 md:col-span-2 lg:col-span-1 gap-10 rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 justify-self-end items-center">
         <span className="font-bold text-2xl">Ostatnie aktywności</span>
-        {isNoActitivites() ? <small className="font-semibold text-md text-gray-500 dark:text-gray-400">Brak ostatnich aktywności</small> : []}
+        {isNoActitivites() ? (
+          <small className="font-semibold text-md text-gray-500 dark:text-gray-400">
+            Brak ostatnich aktywności
+          </small>
+        ) : (
+          []
+        )}
         <ol className="relative mx-4 border-l border-gray-200 dark:border-gray-700">
-          {user.activities?.map((activity, index) => {
+          {activities?.map((activity, index) => {
             const diffDays = moment().diff(activity.timestamp, "days");
 
             if (diffDays > 5) return null;
@@ -373,7 +469,7 @@ function Home() {
                 <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
                   <img
                     className="rounded-full shadow-lg"
-                    src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                    src={user?.avatar}
                     alt="Bonnie image"
                   />
                 </span>
@@ -382,43 +478,7 @@ function Home() {
                     {moment(activity.timestamp).fromNow()}
                   </time>
                   <div className="text-sm font-normal text-gray-500 dark:text-gray-300">
-                    {handleActivity(activity)}{" "}
-                    {activity.invoiceId ? (
-                      <span className="font-semibold">
-                        #
-                        <Link
-                          to={"/"}
-                          className="uppercase text-blue-500 hover:underline"
-                        >
-                          {activity.invoiceId.substring(
-                            activity.invoiceId.length - 6
-                          )}
-                        </Link>
-                      </span>
-                    ) : (
-                      ""
-                    )}{" "}
-                    {activity.clientId ? (
-                      <span>
-                        o nazwie{" "}
-                        <Link
-                          to={"/"}
-                          className="font-semibold text-blue-500 hover:underline"
-                        >
-                          EXP.PL
-                        </Link>
-                      </span>
-                    ) : (
-                      ""
-                    )}{" "}
-                    {activity.invoiceId ? (
-                      <span>
-                        {" "}
-                        na kwotę <span className="font-semibold">$5000</span>
-                      </span>
-                    ) : (
-                      ""
-                    )}
+                    {handleActivity(activity)}
                   </div>
                 </div>
               </li>
@@ -426,7 +486,7 @@ function Home() {
           })}
         </ol>
       </div>
-      <hr className="col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+      <hr className="col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
       <div className="flex flex-col col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 w-full md:w-2/3 mx-auto rounded border border-opacity-50 border-gray-300 dark:border-gray-700 shadow-lg p-4 items-center">
         <span className="font-bold text-2xl">
           Podsumowanie wszystkich faktur

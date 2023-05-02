@@ -24,19 +24,6 @@ const login = async (userData) => {
   return res.data;
 };
 
-/* Add activites */
-const addActivity = async (userId, activityData, token) => {
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  const res = await axios.post(`${API_URL}/${userId}/activities`, activityData, config);
-
-  return res.data;
-}
-
 const logout = () => {
   localStorage.removeItem("user");
 };
@@ -44,7 +31,6 @@ const logout = () => {
 const authService = {
   register,
   login,
-  addActivity,
   logout,
 };
 

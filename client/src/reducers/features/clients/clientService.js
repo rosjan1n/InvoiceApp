@@ -10,7 +10,7 @@ const createClient = async (clientData, token) => {
   };
 
   const res = await axios.post(API_URL, clientData, config);
-  console.log(res.data);
+
   return res.data;
 };
 
@@ -22,13 +22,13 @@ const getClients = async (token) => {
   };
 
   const res = await axios.get(API_URL, config);
-  
+
   return res.data;
 };
 
 const clientService = {
   createClient,
-  getClients
+  getClients,
 };
 
 export default clientService;
